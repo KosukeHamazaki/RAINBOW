@@ -101,7 +101,7 @@ Next, we estimate additive genetic relationship matrix by using `rrBLUP` package
 
 ``` r
 ### Estimate genetic relationship matrix 
-K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("RAINBOW")
+K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
 ```
 
 Next, we modify these data into the GWAS format of `RAINBOW` by `modify.data` function.
