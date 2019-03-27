@@ -94,6 +94,50 @@ This function estimates maximum-likelihood (ML/REML) solutions for the following
 where \eqn{\beta} is a vector of fixed effects and \eqn{u} is a vector of random effects with
 \eqn{Var[u] = K \sigma^2_u}.  The residual variance is \eqn{Var[\epsilon] = I \sigma^2_e}.
 }
+\examples{
+### Import RAINBOW
+require(RAINBOW)
+
+### Load example datasets
+data("Rice_Zhao_etal")
+
+### View each dataset
+See(Rice_geno_score)
+See(Rice_geno_map)
+See(Rice_pheno)
+
+### Select one trait for example
+trait.name <- "Flowering.time.at.Arkansas"
+y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+
+### Remove SNPs whose MAF <= 0.05
+x.0 <- t(Rice_geno_score)
+MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
+x <- MAF.cut.res$x
+map <- MAF.cut.res$map
+
+
+### Estimate genetic relationship matrix
+K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
+
+### Modify data
+modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = T)
+pheno.mat <- modify.res$pheno.modi
+ZETA <- modify.res$ZETA
+
+
+### Solve linear mixed effects model
+EMM.res <- EMM.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
+(Vu <- EMM.res$Vu)   ### estimated genetic variance
+(Ve <- EMM.res$Ve)   ### estimated residual variance
+(herit <- Vu / (Vu + Ve))   ### genomic heritability
+
+(beta <- EMM.res$beta)   ### Here, this is an intercept.
+u <- EMM.res$u   ### estimated genotypic values
+See(u)
+
+
+}
 \references{
 Kang, H.M. et al. (2008) Efficient Control of Population Structure
  in Model Organism Association Mapping. Genetics. 178(3): 1709-1723.

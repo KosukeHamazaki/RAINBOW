@@ -587,7 +587,7 @@ manhattan3 <- function(input, cum.pos, plot.epi.3d = TRUE,
   y <- input[[3]]
   z <- input[[4]]
   col.id <- rainbow(7)
-  quan <- seq(0, max(z), length = 8)
+  quan <- seq(0, max(z, na.rm = TRUE), length = 8)
   col.num <- rep(NA, length(z))
   for(j in 1:length(z)){
     if(z[j] != 0){
@@ -1855,7 +1855,7 @@ score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
     n.scores <- length(unique(gene.set[, 1]))
   }
 
-  scores <- matrix(NA, nrow = n.scores, ncol = n.scores)
+  scores <- matrix(0, nrow = n.scores, ncol = n.scores)
   window.centers <- rep(NA, n.scores)
   freq <- apply(M.now, 2, function(x) mean(x + 1, na.rm = TRUE) / 2)
   MAF <- pmin(freq, 1 - freq)
@@ -2352,7 +2352,7 @@ score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
   }else{
     rownames(scores) <- colnames(scores) <- gene.name
   }
-
+  cat("\n")
   return(scores)
 }
 
@@ -2435,7 +2435,7 @@ score.calc.epistasis.score <- function(M.now, y, X.now, ZETA.now, Gu, Ge, P0,
     n.scores <- length(unique(gene.set[, 1]))
   }
 
-  scores <- matrix(NA, nrow = n.scores, ncol = n.scores)
+  scores <- matrix(0, nrow = n.scores, ncol = n.scores)
   window.centers <- rep(NA, n.scores)
   freq <- apply(M.now, 2, function(x) mean(x + 1, na.rm = TRUE) / 2)
   MAF <- pmin(freq, 1 - freq)
@@ -2735,7 +2735,7 @@ score.calc.epistasis.score <- function(M.now, y, X.now, ZETA.now, Gu, Ge, P0,
             K.AA.part <- K.A.0.1.part * K.A.0.2.part
 
             Ws.null <- list(A.part.1 = Z.A.1.part, A.part.2 = Z.A.2.part)
-            Ws.alt <- c(A.part.1 = Z.A.1.part, A.part.2 = Z.A.2.part, AA.part = Z.normal)
+            Ws.alt <- list(A.part.1 = Z.A.1.part, A.part.2 = Z.A.2.part, AA.part = Z.normal)
 
             Gammas.null <- list(A.part.1 = K.A.1.part, A.part.2 = K.A.2.part)
             Gammas.alt <- list(A.part.1 = K.A.1.part, A.part.2 = K.A.2.part, AA.part = K.AA.part)
@@ -2900,7 +2900,7 @@ score.calc.epistasis.score <- function(M.now, y, X.now, ZETA.now, Gu, Ge, P0,
   }else{
     rownames(scores) <- colnames(scores) <- gene.name
   }
-
+  cat("\n")
   return(scores)
 }
 

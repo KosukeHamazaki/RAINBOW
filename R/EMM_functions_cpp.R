@@ -293,7 +293,7 @@ EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range 
   }
 
   ### Some definitions ###
-  y0 <- y
+  y0 <- as.matrix(y)
   n0 <- length(y0)
 
   if (is.null(X)) {
@@ -451,7 +451,7 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
   }
 
   pi <- 3.14159
-  y0 <- y
+  y0 <- as.matrix(y)
   n0 <- length(y0)
 
   if (is.null(X)) {
@@ -631,6 +631,50 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
 #' Zhou, X. and Stephens, M. (2012) Genome-wide efficient mixed-model analysis
 #'  for association studies. Nat Genet. 44(7): 821-824.
 #'
+#'
+#' @examples
+#' ### Import RAINBOW
+#' require(RAINBOW)
+#'
+#' ### Load example datasets
+#' data("Rice_Zhao_etal")
+#'
+#' ### View each dataset
+#' See(Rice_geno_score)
+#' See(Rice_geno_map)
+#' See(Rice_pheno)
+#'
+#' ### Select one trait for example
+#' trait.name <- "Flowering.time.at.Arkansas"
+#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+#'
+#' ### Remove SNPs whose MAF <= 0.05
+#' x.0 <- t(Rice_geno_score)
+#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
+#' x <- MAF.cut.res$x
+#' map <- MAF.cut.res$map
+#'
+#'
+#' ### Estimate genetic relationship matrix
+#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
+#'
+#' ### Modify data
+#' modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = T)
+#' pheno.mat <- modify.res$pheno.modi
+#' ZETA <- modify.res$ZETA
+#'
+#'
+#' ### Solve linear mixed effects model
+#' EMM.res <- EMM.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
+#' (Vu <- EMM.res$Vu)   ### estimated genetic variance
+#' (Ve <- EMM.res$Ve)   ### estimated residual variance
+#' (herit <- Vu / (Vu + Ve))   ### genomic heritability
+#'
+#' (beta <- EMM.res$beta)   ### Here, this is an intercept.
+#' u <- EMM.res$u   ### estimated genotypic values
+#' See(u)
+#'
+#'
 #' @export
 #'
 EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres = 450, reestimation = FALSE,
@@ -713,11 +757,60 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #' Zhou, X. and Stephens, M. (2012) Genome-wide efficient mixed-model analysis
 #'  for association studies. Nat Genet. 44(7): 821-824.
 #'
+#'
+#' @examples
+#' ### Import RAINBOW
+#' require(RAINBOW)
+#'
+#' ### Load example datasets
+#' data("Rice_Zhao_etal")
+#'
+#' ### View each dataset
+#' See(Rice_geno_score)
+#' See(Rice_geno_map)
+#' See(Rice_pheno)
+#'
+#' ### Select one trait for example
+#' trait.name <- "Flowering.time.at.Arkansas"
+#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+#'
+#' ### Remove SNPs whose MAF <= 0.05
+#' x.0 <- t(Rice_geno_score)
+#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
+#' x <- MAF.cut.res$x
+#' map <- MAF.cut.res$map
+#'
+#'
+#' ### Estimate additive genetic relationship matrix & epistatic relationship matrix
+#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
+#' K.AA <- K.A * K.A   ### additive x additive epistatic effects
+#'
+#'
+#' ### Modify data
+#' Z <- design.Z(pheno.labels = rownames(y),
+#'               geno.names = rownames(K.A))  ### design matrix for random effects
+#' pheno.mat <- y[rownames(Z), , drop = FALSE]
+#' ZETA <- list(A = list(Z = Z, K = K.A),
+#'              AA = list(Z = Z, K = K.AA))
+#'
+#'
+#' ### Solve multi-kernel linear mixed effects model (2 random efects)
+#' EM3.res <- EM3.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
+#' (Vu <- EM3.res$Vu)   ### estimated genetic variance
+#' (Ve <- EM3.res$Ve)   ### estimated residual variance
+#' (weights <- EM3.res$weights)   ### estimated proportion of two genetic variances
+#' (herit <- Vu * weights / (Vu + Ve))   ### genomic heritability (additive, additive x additive)
+#'
+#' (beta <- EM3.res$beta)   ### Here, this is an intercept.
+#' u <- EM3.res$u   ### estimated genotypic values (additive, additive x additive)
+#' See(u)
+#'
+#'
 #' @export
 #'
 EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = NULL,
                      n.thres = 450, REML = TRUE, pred = TRUE){
-  n <- length(y)
+  n <- length(as.matrix(y))
   y <- matrix(y, n, 1)
 
   not.NA <- which(!is.na(y))
@@ -1001,7 +1094,7 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
                             X.fix = TRUE, eigen.SGS = NULL, eigen.G = NULL, tol = NULL,
                             bounds = c(1e-06, 1e06), n.thres = 450, spectral.method = NULL,
                             REML = TRUE, pred = TRUE){
-  n0 <- length(y0)
+  n0 <- length(as.matrix(y0))
   y0 <- matrix(y0, n0, 1)
 
   if(is.null(ZETA)){

@@ -131,6 +131,55 @@
 #' Jiang, Y. and Reif, J.C. (2015) Modeling epistasis in genomic selection. Genetics. 201(2): 759-768.
 #'
 #'
+#' @examples
+#' ### Import RAINBOW
+#' require(RAINBOW)
+#'
+#' ### Load example datasets
+#' data("Rice_Zhao_etal")
+#'
+#' ### View each dataset
+#' See(Rice_geno_score)
+#' See(Rice_geno_map)
+#' See(Rice_pheno)
+#'
+#' ### Select one trait for example
+#' trait.name <- "Flowering.time.at.Arkansas"
+#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+#'
+#' ### Remove SNPs whose MAF <= 0.05
+#' x.0 <- t(Rice_geno_score)
+#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
+#' x <- MAF.cut.res$x
+#' map <- MAF.cut.res$map
+#'
+#'
+#' ### Estimate genetic relationship matrix
+#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
+#'
+#'
+#' ### Modify data
+#' modify.data.res <- modify.data(pheno.mat = y, geno.mat = x, map = map,
+#'                                return.ZETA = TRUE, return.GWAS.format = TRUE)
+#' pheno.GWAS <- modify.data.res$pheno.GWAS
+#' geno.GWAS <- modify.data.res$geno.GWAS
+#' ZETA <- modify.data.res$ZETA
+#'
+#'
+#' ### View each data for RAINBOW
+#' See(pheno.GWAS)
+#' See(geno.GWAS)
+#' str(ZETA)
+#'
+#'
+#' ### Perform two step epistasis GWAS (single-snp GWAS -> Check epistasis for significant markers)
+#' twostep.epi.res <- RGWAS.twostep.epi(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA,
+#'                                      n.PC = 4, test.method = "score", gene.set = NULL,
+#'                                      window.size.half = 5, window.slide = 11)
+#'
+#' See(twostep.epi.res$epistasis$scores)
+#'
+#'
 #' @export
 #'
 #'
@@ -234,7 +283,8 @@ RGWAS.twostep.epi <- function(pheno, geno, ZETA = NULL, covariate = NULL, covari
 
     print(paste("The 2nd step : Calculating -log10(p) of epistatic effects of", trait.name, "for", n.checks, "x", n.checks,"SNPs."))
     RGWAS.epistasis.res <- RGWAS.epistasis(pheno = pheno.now, geno = geno.check, ZETA = ZETA, covariate = covariate,
-                                           covariate.factor = covariate.factor, structure.matrix = structure.matrix, n.PC = 0, min.MAF = 0.02, n.core = 1,
+                                           covariate.factor = covariate.factor, structure.matrix = structure.matrix,
+                                           n.PC = n.PC, min.MAF = min.MAF, n.core = n.core,
                                            test.method = test.method, dominance.eff = dominance.eff, haplotype = haplotype,
                                            num.hap = num.hap, window.size.half = window.size.half, window.slide = window.slide,
                                            chi0.mixture = chi0.mixture, gene.set = gene.set,
@@ -242,12 +292,16 @@ RGWAS.twostep.epi <- function(pheno, geno, ZETA = NULL, covariate = NULL, covari
                                            main.epi.2d = main.epi.2d, saveName = saveName, verbose = verbose,
                                            count = count, time = time)
 
-    scores.epi <- RGWAS.epistasis.res$scores$scores
-    rownames(scores.epi) <- colnames(scores.epi) <- checks
 
-    cum.pos2 <- cum.pos[checks]
-    x.3d <- rep(cum.pos2, n.checks)
-    y.3d <- rep(cum.pos2, each = n.checks)
+    check.tests <- as.numeric(rownames(RGWAS.epistasis.res$map))
+    n.check.tests <- length(check.tests)
+
+    scores.epi <- RGWAS.epistasis.res$scores$scores
+    rownames(scores.epi) <- colnames(scores.epi) <- check.tests
+
+    cum.pos2 <- cum.pos[check.tests]
+    x.3d <- rep(cum.pos2, n.check.tests)
+    y.3d <- rep(cum.pos2, each = n.check.tests)
     z.3d <- c(scores.epi)
 
     epi.res <- list(scores = scores.epi, x = x.3d, y = y.3d, z = z.3d)
@@ -266,11 +320,12 @@ RGWAS.twostep.epi <- function(pheno, geno, ZETA = NULL, covariate = NULL, covari
 
     if(n.pheno >= 2){
       all.epi.res[[pheno.no]] <- epi.res
+      names(all.epi.res) <- trait.names
     }else{
       all.epi.res <- epi.res
     }
   }
-  names(all.epi.res) <- trait.names
+
 
 
   end <- Sys.time()

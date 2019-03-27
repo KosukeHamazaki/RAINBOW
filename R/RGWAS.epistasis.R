@@ -93,6 +93,56 @@
 #'
 #' Jiang, Y. and Reif, J.C. (2015) Modeling epistasis in genomic selection. Genetics. 201(2): 759-768.
 #'
+#'
+#' @examples
+#' ### Import RAINBOW
+#' require(RAINBOW)
+#'
+#' ### Load example datasets
+#' data("Rice_Zhao_etal")
+#'
+#' ### View each dataset
+#' See(Rice_geno_score)
+#' See(Rice_geno_map)
+#' See(Rice_pheno)
+#'
+#' ### Select one trait for example
+#' trait.name <- "Flowering.time.at.Arkansas"
+#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+#'
+#' ### Remove SNPs whose MAF <= 0.05
+#' x.0 <- t(Rice_geno_score)
+#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
+#' x <- MAF.cut.res$x
+#' map <- MAF.cut.res$map
+#'
+#'
+#' ### Estimate genetic relationship matrix
+#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("RAINBOW")
+#'
+#'
+#' ### Modify data
+#' modify.data.res <- modify.data(pheno.mat = y, geno.mat = x, map = map,
+#'                                return.ZETA = TRUE, return.GWAS.format = TRUE)
+#' pheno.GWAS <- modify.data.res$pheno.GWAS
+#' geno.GWAS <- modify.data.res$geno.GWAS
+#' ZETA <- modify.data.res$ZETA
+#'
+#'
+#' ### View each data for RAINBOW
+#' See(pheno.GWAS)
+#' See(geno.GWAS)
+#' str(ZETA)
+#'
+#'
+#' ### Check epistatic effects (by regarding 11 SNPs as one SNP-set)
+#' epistasis.res <- RGWAS.epistasis(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA,
+#'                                  n.PC = 4, test.method = "score", gene.set = NULL,
+#'                                  window.size.half = 40, window.slide = 81)
+#'
+#' See(epistasis.res$scores$scores)
+#'
+#'
 #' @export
 #'
 #'
@@ -281,6 +331,17 @@ RGWAS.epistasis <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariat
       weights <- 1
     }
 
+    ZKZt.list <- NULL
+    ZKZt <- matrix(0, nrow = n, ncol = n)
+    for(ZKZt.no in 1:length(ZETA)){
+      Z.now <- ZETA.now[[ZKZt.no]]$Z
+      K.now <- ZETA.now[[ZKZt.no]]$K
+      ZKZt.now <- tcrossprod(Z.now %*% K.now, Z.now)
+      ZKZt.weighted <- ZKZt.now * weights[ZKZt.no]
+
+      ZKZt.list <- c(ZKZt.list, list(ZKZt.weighted))
+      ZKZt <- ZKZt + ZKZt.weighted
+    }
 
     if(test.method == "LR"){
       LL0 <- EMM.res0$LL
