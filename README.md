@@ -58,9 +58,9 @@ MASS
 In `RAINBOW`,  since part of the code is written in `Rcpp` (`C++` in `R`),  please check if you can use `C++` in `R`.
 For `Windows` users,  you should install [`Rtools`](https://cran.r-project.org/bin/windows/Rtools/).
 
-In the near future, we will try to publish `RAINBOW` on `CRAN`.
+Shortly, we will try to publish `RAINBOW` on `CRAN`.
 
-If you have some questions about installation, please contact us by e-mail (hamazaki@ut-biomet.org).
+If you have any questions about the installation, please contact us by e-mail (hamazaki@ut-biomet.org).
 
 
 ##  Usage
@@ -97,7 +97,7 @@ x <- MAF.cut.res$x
 map <- MAF.cut.res$map
 ```
 
-Next, we estimate additive genetic relationship matrix by using `rrBLUP` package.
+Next, we estimate the additive genetic relationship matrix by using the `rrBLUP` package.
 
 ``` r
 ### Estimate genetic relationship matrix 
@@ -165,7 +165,7 @@ You can also check how to determine each argument by
 ``` r
 RGWAS.menu()
 ```
-`RGWAS.menu` function asks some questions, and by answering these question, the function tells you how to determine which function use and how to set arguments.
+`RGWAS.menu` function asks you some questions, and by answering these questions, the function tells you how to determine which function use and how to set arguments.
 
 
 ## References
