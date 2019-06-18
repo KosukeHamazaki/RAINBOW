@@ -168,6 +168,12 @@ RGWAS.menu()
 `RGWAS.menu` function asks you some questions, and by answering these questions, the function tells you how to determine which function use and how to set arguments.
 
 
+### Citation
+If you use `RAINBOW`, please cite [article published in `bioRxiv`](https://www.biorxiv.org/content/10.1101/612028v1) as follows.
+
+Hamazaki, K. and Iwata, H. (2019) Haplotype-based genome wide association study using a novel SNP-set method : RAINBOW. bioRxiv. January 2019: 612028.
+
+
 ## References
 Kennedy, B.W., Quinton, M. and van Arendonk, J.A. (1992) Estimation of effects of single genes on quantitative traits. J Anim Sci. 70(7): 2000-2012.
 
@@ -194,3 +200,5 @@ Listgarten, J. et al. (2013) A powerful and efficient set test for genetic marke
 Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 
 Jiang, Y. and Reif, J.C. (2015) Modeling epistasis in genomic selection. Genetics. 201(2): 759-768.
+
+Hamazaki, K. and Iwata, H. (2019) Haplotype-based genome wide association study using a novel SNP-set method : RAINBOW. bioRxiv. January 2019: 612028.
