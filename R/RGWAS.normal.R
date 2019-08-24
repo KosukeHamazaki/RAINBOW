@@ -44,7 +44,7 @@
 #' If a marker has a MAF less than min.MAF, it is assigned a zero score.
 #' @param P3D When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 #' When P3D = FALSE, variance components are estimated by REML for each marker separately.
-#' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores (use only at UNIX command line).
+#' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
 #' @param sig.level Significance level for the threshold. The default is 0.05.
 #' @param method.thres Method for detemining threshold of significance. "BH" and "Bonferroni are offered.
 #' @param plot.qq If TRUE, draw qq plot.
@@ -366,13 +366,10 @@ RGWAS.normal <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.f
 
     #### Calculating the value of -log10(p) for each SNPs ####
     if ((n.core > 1) & requireNamespace("parallel", quietly = TRUE)) {
-      it <- split(1:n.mark, factor(cut(1:n.mark, n.core, labels = FALSE)))
-      scores <- unlist(parallel::mclapply(it, function(markers) {
-        score.calc(M.now = M.now[, markers], ZETA.now = ZETA.now, y = y,
+      scores <- score.calc.MC(M.now = M.now, ZETA.now = ZETA.now, y = y,
                    X.now = X.now, Hinv = Hinv, P3D = P3D, eigen.G = eigen.G,
                    min.MAF = min.MAF, count = count)
-      }, mc.cores = n.core))
-    }else {
+    } else {
       scores <- score.calc(M.now, ZETA.now = ZETA.now, y = y, X.now = X.now, Hinv = Hinv,
                            P3D = P3D, eigen.G = eigen.G, min.MAF = min.MAF, count = count)
     }

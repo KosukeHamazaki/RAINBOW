@@ -373,26 +373,22 @@ RGWAS.epistasis <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariat
 
     #### Calculating the value of -log10(p) for each SNPs ####
     if ((n.core > 1) & requireNamespace("parallel", quietly = TRUE)) {
-      it <- split(1:n.mark, factor(cut(1:n.mark, n.core, labels = FALSE)))
-      score.calc.mark <- function(markers) {
-        if(test.method == "LR"){
-          score.res.epi <- score.calc.epistasis.LR(M.now = M.now[, markers], y = y, X.now = X.now, ZETA.now = ZETA.now,
-                                                   eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map,
-                                                   haplotype = haplotype, num.hap = num.hap, window.size.half = window.size.half,
-                                                   window.slide = window.slide, chi0.mixture = chi0.mixture,
-                                                   gene.set = gene.set, dominance.eff = dominance.eff,
-                                                   min.MAF = min.MAF, count = count)
-        }else{
-          score.res.epi <- score.calc.epistasis.score(M.now = M.now[, markers], ZETA.now = ZETA.now, y = y,
-                                                      Gu = Gu, Ge = Ge, P0 = P0, map = map, haplotype = haplotype,
-                                                      num.hap = num.hap, window.size.half = window.size.half,
-                                                      window.slide = window.slide, chi0.mixture = chi0.mixture,
-                                                      gene.set = gene.set, dominance.eff = dominance.eff,
-                                                      min.MAF = min.MAF, count = count)
-        }
-        return(score.res.epi)
+      warning("Sorry. n.core > 1 options have not been implemented yet. We will use n.core = 1 instead.")
+      if(test.method == "LR"){
+        scores.epi <- score.calc.epistasis.LR(M.now = M.now, y = y, X.now = X.now, ZETA.now = ZETA.now,
+                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map,
+                                              haplotype = haplotype, num.hap = num.hap, window.size.half = window.size.half,
+                                              window.slide = window.slide, chi0.mixture = chi0.mixture,
+                                              gene.set = gene.set,  dominance.eff = dominance.eff,
+                                              min.MAF = min.MAF, count = count)
+      }else{
+        scores.epi <- score.calc.epistasis.score(M.now = M.now, ZETA.now = ZETA.now, y = y,
+                                                 Gu = Gu, Ge = Ge, P0 = P0, map = map, haplotype = haplotype,
+                                                 num.hap = num.hap, window.size.half = window.size.half,
+                                                 window.slide = window.slide, chi0.mixture = chi0.mixture,
+                                                 gene.set = gene.set, dominance.eff = dominance.eff,
+                                                 min.MAF = min.MAF, count = count)
       }
-      scores.epi <- unlist(parallel::mclapply(it, score.calc.mark, mc.cores = n.core))
     }else {
       if(test.method == "LR"){
         scores.epi <- score.calc.epistasis.LR(M.now = M.now, y = y, X.now = X.now, ZETA.now = ZETA.now,

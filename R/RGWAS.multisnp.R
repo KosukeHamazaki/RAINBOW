@@ -456,28 +456,23 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
 
     #### Calculating the value of -log10(p) for each SNPs ####
     if ((n.core > 1) & requireNamespace("parallel", quietly = TRUE)) {
-      it <- split(1:n.mark, factor(cut(1:n.mark, n.core, labels = FALSE)))
-      score.calc.mark <- function(markers) {
         if(test.method == "LR"){
-          score.res <- score.calc.LR(M.now = M.now[, markers], y = y, X.now = X.now, ZETA.now = ZETA.now, LL0 = LL0,
-                                     eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map,
+          scores <- score.calc.LR.MC(M.now = M.now, y = y, X.now = X.now, ZETA.now = ZETA.now, LL0 = LL0,
+                                     eigen.SGS = eigen.SGS, eigen.G = eigen.G, n.core = n.core, map = map,
                                      kernel.method = kernel.method, kernel.h = kernel.h, haplotype = haplotype,
                                      num.hap = num.hap, test.effect = test.effect, window.size.half = window.size.half,
                                      window.slide = window.slide, chi0.mixture = chi0.mixture,
                                      weighting.center = weighting.center, weighting.other = weighting.other,
                                      gene.set = gene.set, min.MAF = min.MAF, count = count)
         }else{
-          score.res <- score.calc.score(M.now = M.now[, markers], ZETA.now = ZETA.now, y = y,
-                                        LL0 = LL0, Gu = Gu, Ge = Ge, P0 = P0, map = map,
+          scores <- score.calc.score.MC(M.now = M.now, ZETA.now = ZETA.now, y = y,
+                                        LL0 = LL0, Gu = Gu, Ge = Ge, P0 = P0, n.core = n.core, map = map,
                                         kernel.method = kernel.method, kernel.h = kernel.h, haplotype = haplotype,
                                         num.hap = num.hap, test.effect = test.effect, window.size.half = window.size.half,
                                         window.slide = window.slide, chi0.mixture = chi0.mixture,
                                         weighting.center = weighting.center, weighting.other = weighting.other,
                                         gene.set = gene.set, min.MAF = min.MAF, count = count)
         }
-        return(score.res)
-      }
-      scores <- unlist(parallel::mclapply(it, score.calc.mark, mc.cores = n.core))
     }else {
       if(test.method == "LR"){
         scores <- score.calc.LR(M.now = M.now, y = y, X.now = X.now, ZETA.now = ZETA.now, LL0 = LL0,

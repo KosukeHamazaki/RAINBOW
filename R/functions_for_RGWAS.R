@@ -791,6 +791,111 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
 
 
 
+#' Calculate -log10(p) for single-SNP GWAS
+#'
+#' @description Calculate -log10(p) of each SNP by the Wald test.
+#'
+#' @importFrom Matrix rankMatrix
+#'
+#' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
+#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' For example, ZETA = list(A = list(Z = Z, K = K))
+#' Please set names of list "Z" and "K"!
+#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param Hinv the inverse of \eqn{H = ZKZ' + \lambda I} where \eqn{\lambda = \sigma^2_e / \sigma^2_u}.
+#' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
+#' @param P3D When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
+#' When P3D = FALSE, variance components are estimated by REML for each marker separately.
+#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
+#' If this argument is NULL, the eigen decomposition will be performed in this function.
+#' We recommend you assign the result of the eigen decomposition beforehand for time saving.
+#' @param min.MAF Specifies the minimum minor allele frequency (MAF).
+#' If a marker has a MAF less than min.MAF, it is assigned a zero score.
+#' @param count When count is TRUE, you can know how far RGWAS has ended with percent display.
+#'
+#' @return -log10(p) for each marker
+#'
+#' @references Kennedy, B.W., Quinton, M. and van Arendonk, J.A. (1992)
+#' Estimation of effects of single genes on quantitative traits. J Anim Sci. 70(7): 2000-2012.
+#'
+#' Kang, H.M. et al. (2008) Efficient Control of Population Structure
+#'  in Model Organism Association Mapping. Genetics. 178(3): 1709-1723.
+#'
+#' Kang, H.M. et al. (2010) Variance component model to account for sample
+#'   structure in genome-wide association studies. Nat Genet. 42(4): 348-354.
+#'
+#' Zhang, Z. et al. (2010) Mixed linear model approach adapted for genome-wide
+#'  association studies. Nat Genet. 42(4): 355-360.
+#'
+#' @export
+#'
+score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRUE,
+                          eigen.G = NULL,  min.MAF = 0.02, count = TRUE) {
+  n.mark <- ncol(M.now)
+
+  lz <- length(ZETA.now)
+  ZKZt <- matrix(0, nrow = length(y), ncol = length(y))
+  for(list.no in lz){
+    ZKZt.now <- tcrossprod(ZETA.now[[list.no]]$Z %*% ZETA.now[[list.no]]$K, ZETA.now[[list.no]]$Z)
+    ZKZt <- ZKZt + ZKZt.now
+  }
+  rank.ZKZt <- Matrix::rankMatrix(ZKZt)[1]
+
+  score.calc.MC.oneSNP <- function(markNo) {
+    Mi <- M.now[, markNo]
+    freq <- mean(Mi + 1, na.rm = TRUE) / 2
+    MAF <- min(freq, 1 - freq)
+    if (MAF >= min.MAF) {
+      not.NA.geno <- which(!is.na(Mi))
+
+      ni <- as.integer(min(length(not.NA.geno), rank.ZKZt))
+      yi <- as.matrix(y[not.NA.geno])
+      Xi <- cbind(X.now[not.NA.geno, ], Mi[not.NA.geno])
+      p <- ncol(Xi)
+      v1 <- 1
+      v2 <- ni - p
+
+      if (!P3D) {
+        Xi <- make.full(Xi)
+        if(length(ZETA) > 1){
+          EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G,
+                             tol = NULL, n.thres = 450, REML = TRUE, pred = FALSE)
+        }else{
+          EMM.res <- EMM.cpp(y = yi, X = Xi, ZETA = ZETA.now, eigen.G = eigen.G,
+                             tol = NULL, n.thres = 450, REML = TRUE)
+        }
+        H2inv <- EMM.res$Hinv
+      }else {
+        H2inv <- Hinv[not.NA.geno, not.NA.geno]
+      }
+
+      beta.stat <- try(GWAS_F_test(y = yi, x = Xi, hinv = H2inv,
+                                   v1 = v1, v2 = v2, p = p), silent = TRUE)
+
+      if(class(beta.stat) != "try-error"){
+        scores.now <- -log10(pbeta(beta.stat, v2 / 2, v1 / 2))
+      } else {
+        scores.now <- NA
+      }
+    } else {
+      scores.now <- NA
+    }
+    return(scores.now)
+  }
+  cat("\n")
+
+  scores <- unlist(pbmcapply::pbmclapply(X = 1:n.mark, FUN = score.calc.MC.oneSNP, mc.cores = n.core))
+
+  return(scores)
+}
+
+
+
+
+
+
 #' Change a matrix to full-rank matrix
 #'
 #' @param X n x p matrix which you want to change into full-rank matrix.
@@ -1357,6 +1462,541 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 
 
 
+#' Calculate -log10(p) of each SNP-set by the LR test (multi cores)
+#'
+#' @description This function calculates -log10(p) of each SNP-set by the LR test.
+#' First, the function solves the multi-kernel mixed model and calaculates the maximum restricted log likelihood.
+#' Then it performs the LR test by using the fact that the deviance
+#'
+#' \deqn{D = 2 \times (LL _ {alt} - LL _ {null})}
+#'
+#' follows the chi-square distribution.
+#'
+#' @importFrom Matrix rankMatrix
+#' @importFrom cluster pam
+#'
+#' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
+#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' For example, ZETA = list(A = list(Z = Z, K = K))
+#' Please set names of list "Z" and "K"!
+#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param LL0 The log-likelihood for the null model.
+#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
+#' You can use "spectralG.cpp" function in RAINBOW.
+#' If this argument is NULL, the eigen decomposition will be performed in this function.
+#' We recommend you assign the result of the eigen decomposition beforehand for time saving.
+#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
+#' If this argument is NULL, the eigen decomposition will be performed in this function.
+#' We recommend you assign the result of the eigen decomposition beforehand for time saving.
+#' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
+#' @param map Data frame of map information where the first column is the marker names,
+#' the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.
+#' @param kernel.method It determines how to calculate kernel. There are three methods.
+#' \describe{
+#' \item{"gaussian"}{It is the default method. Gaussian kernel is calculated by distance matrix.}
+#' \item{"exponential"}{When this method is selected, exponential kernel is calculated by distance matrix.}
+#' \item{"linear"}{When this method is selected, linear kernel is calculated by A.mat.}
+#'}
+#' @param kernel.h The hyper parameter for gaussian or exponential kernel.
+#' If kernel.h = "tuned", this hyper parameter is calculated as the median of off-diagonals of distance matrix of genotype data.
+#' @param haplotype If the number of lines of your data is large (maybe > 100), you should set haplotype = TRUE.
+#'             When haplotype = TRUE, haplotype-based kernel will be used for calculating -log10(p).
+#'             (So the dimension of this gram matrix will be smaller.)
+#'             The result won't be changed, but the time for the calculation will be shorter.
+#' @param num.hap When haplotype = TRUE, you can set the number of haplotypes which you expect.
+#'           Then similar arrays are considered as the same haplotype, and then make kernel(K.SNP) whose dimension is num.hap x num.hap.
+#'           When num.hap = NULL (default), num.hap will be set as the maximum number which reflects the difference between lines.
+#' @param test.effect Effect of each marker to test. You can choose "test.effect" from "additive", "dominance" and "additive+dominance".
+#' You also can choose more than one effect, for example, test.effect = c("additive", "aditive+dominance")
+#' @param window.size.half This argument decides how many SNPs (around the SNP you want to test) are used to calculated K.SNP.
+#' More precisely, the number of SNPs will be 2 * window.size.half + 1.
+#' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
+#' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
+#' @param chi0.mixture RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
+#' where r is the degree of freedom.
+#' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
+#' @param weighting.center In kernel-based GWAS, weights according to the Gaussian distribution (centered on the tested SNP) are taken into account when calculating the kernel if Rainbow = TRUE.
+#'           If Rainbow = FALSE, weights are not taken into account.
+#' @param weighting.other You can set other weights in addition to weighting.center. The length of this argument should be equal to the number of SNPs.
+#'           For example, you can assign SNP effects from the information of gene annotation.
+#' @param gene.set If you have information of gene, you can use it to perform kernel-based GWAS.
+#'            You should assign your gene information to gene.set in the form of a "data.frame" (whose dimension is (the number of gene) x 2).
+#'            In the first column, you should assign the gene name. And in the second column, you should assign the names of each marker,
+#'            which correspond to the marker names of "geno" argument.
+#' @param min.MAF Specifies the minimum minor allele frequency (MAF).
+#' If a marker has a MAF less than min.MAF, it is assigned a zero score.
+#' @param count When count is TRUE, you can know how far RGWAS has ended with percent display.
+#'
+#' @return -log10(p) for each SNP-set
+#'
+#' @references Listgarten, J. et al. (2013) A powerful and efficient set test
+#'  for genetic markers that handles confounders. Bioinformatics. 29(12): 1526-1533.
+#'
+#' Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based
+#'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
+#'
+#' @export
+#'
+score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eigen.G = NULL, n.core = 2,
+                             map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
+                             test.effect = "additive", window.size.half = 5, window.slide = 1,
+                             chi0.mixture = 0.5, weighting.center = TRUE, weighting.other = NULL,
+                             gene.set = NULL, min.MAF = 0.02, count = TRUE){
+  n <- length(y)
+
+  chr <- map[, 2]
+  chr.tab <- table(chr)
+  chr.max <- max(chr)
+  chr.cum <- cumsum(chr.tab)
+  n.scores.each <- (chr.tab + (window.slide - 1)) %/% window.slide
+  cum.n.scores <- cumsum(n.scores.each)
+  if(is.null(gene.set)){
+    n.scores <- sum(n.scores.each)
+  }else{
+    gene.names <- as.character(gene.set[, 1])
+    mark.id <- as.character(gene.set[, 2])
+    gene.name <- as.character(unique(gene.names))
+    n.scores <- length(unique(gene.set[, 1]))
+  }
+
+  if(kernel.method == "linear"){
+    ncol.scores <- length(test.effect)
+  }else{
+    ncol.scores <- 1
+  }
+  window.centers <- rep(NA, n.scores)
+  freq <- apply(M.now, 2, function(x) mean(x + 1, na.rm = TRUE) / 2)
+  MAF <- pmin(freq, 1 - freq)
+
+  if(any(test.effect %in% c("dominance", "additive+dominance"))){
+    M.now.D <- 1 - abs(M.now)
+    M.now.D.freq <- colMeans(M.now.D)
+    MAF.D <- pmin(M.now.D.freq, 1 - M.now.D.freq)
+  }
+
+
+  score.calc.LR.MC.oneSNP <- function(markNo) {
+    if(is.null(gene.set)){
+      markNo.chr <- min(which(markNo - cum.n.scores <= 0))
+      if(markNo.chr >= 2){
+        window.center <- window.slide * (markNo - cum.n.scores[markNo.chr - 1] - 1) + chr.cum[markNo.chr - 1] + 1
+      }else{
+        window.center <- window.slide * (markNo - 1) + 1
+      }
+      names(window.center) <- markNo.chr
+      Theories1 <-  window.center < window.size.half + 1
+      for(r in 1:(chr.max - 1)){
+        Theory1 <- chr.cum[r] < window.center & window.center < window.size.half + 1 + chr.cum[r]
+        Theories1 <- c(Theories1, Theory1)
+      }
+      rule1 <- sum(Theories1) != 0
+
+
+      Theories2  <- NULL
+      for(r in 1:chr.max){
+        Theory2 <- chr.cum[r] - (window.size.half + 1) < window.center & window.center <= chr.cum[r]
+        Theories2 <- c(Theories2, Theory2)
+      }
+      rule2 <- sum(Theories2) != 0
+
+
+
+      if(rule1 & rule2){
+        Mis.range <- which(chr == markNo.chr)
+        Mis.range.2 <- which(chr == markNo.chr) - window.center + 1 + window.size.half
+      }else{
+        if(rule1){
+          near.min <- c(0, chr.cum)[which.min(abs(window.center - c(0, chr.cum)))]
+          Mis.range <- (near.min + 1):(window.center + window.size.half)
+          Mis.range2 <- (2 * window.size.half + 2 - length(Mis.range)):(2 * window.size.half + 1)
+        }else{
+          if(rule2){
+            near.max <- c(0, chr.cum)[which.min(abs(window.center - c(0, chr.cum)))]
+            Mis.range <- (window.center - window.size.half):near.max
+            Mis.range2 <- 1:length(Mis.range)
+          }else{
+            Mis.range <- (window.center - window.size.half):(window.center + window.size.half)
+            Mis.range2 <- 1:(2 * window.size.half + 1)
+          }
+        }
+      }
+    }else{
+      mark.name.now <- mark.id[gene.names == gene.name[markNo]]
+      Mis.range <- match(mark.name.now, map[, 1])
+      Mis.range2 <- 1:length(Mis.range)
+      weighting.center <- FALSE
+    }
+
+    Mis.0 <- M.now[, Mis.range, drop = FALSE]
+    MAF.cut <- MAF[Mis.range] >= min.MAF
+    if(any(test.effect %in% c("dominance", "additive+dominance"))){
+      Mis.D.0 <- M.now.D[, Mis.range, drop = FALSE]
+      MAF.cut.D <- MAF.D[Mis.range] > 0
+    }else{
+      MAF.cut.D <- rep(TRUE, length(MAF.cut))
+    }
+
+    if(any(MAF.cut)){
+      Mis.0 <- Mis.0[, MAF.cut, drop = FALSE]
+      Mis.range <- Mis.range[MAF.cut]
+      Mis.range2 <- Mis.range2[MAF.cut]
+      window.size <- ncol(Mis.0)
+      if(any(MAF.cut.D)){
+        if(any(test.effect %in% c("dominance", "additive+dominance"))){
+          Mis.D.0 <- Mis.D.0[, MAF.cut.D, drop = FALSE]
+          Mis.range.D <- Mis.range[MAF.cut.D]
+          Mis.range2.D <- Mis.range2[MAF.cut.D]
+          window.size.D <- ncol(Mis.D.0)
+        }
+      }
+
+      if(haplotype){
+        if(is.null(num.hap)){
+          Mis.fac <- factor(apply(Mis.0, 1, function(x) paste(x, collapse = "")))
+          Mis <- Mis.0[!duplicated(as.numeric(Mis.fac)), , drop = FALSE]
+          bango <- as.factor(as.numeric(Mis.fac))
+          levels(bango) <- order(unique(bango))
+          bango <- as.numeric(as.character(bango))
+          if(any(MAF.cut.D)){
+            if(any(test.effect %in% c("dominance", "additive+dominance"))){
+              Mis.D.fac <- factor(apply(Mis.D.0, 1, function(x) paste(x, collapse = "")))
+              Mis.D <- matrix(Mis.D.0[!duplicated(as.numeric(Mis.D.fac)), ],
+                              nrow = length(levels(Mis.D.fac)))
+
+              bango.D <- as.factor(as.numeric(Mis.D.fac))
+              levels(bango.D) <- order(unique(bango.D))
+              bango.D <- as.numeric(as.character(bango.D))
+            }
+          }
+        }else{
+          kmed.res <- cluster::pam(Mis.0, k = num.hap)
+          Mis <- kmed.res$medoids
+          bango <- kmed.res$clustering
+          if(any(MAF.cut.D)){
+            if(any(test.effect %in% c("dominance", "additive+dominance"))){
+              kmed.res.D <- cluster::pam(Mis.D.0, k = num.hap)
+              Mis.D <- kmed.res.D$medoids
+              bango.D <- kmed.res.D$clustering
+            }
+          }
+        }
+        Z.part <- as.matrix(Matrix::sparseMatrix(i = 1:nrow(M.now), j = bango, x = rep(1, nrow(M.now)),
+                                                 dims = c(nrow(M.now), nrow(Mis))))
+        if(any(MAF.cut.D)){
+          if(any(test.effect %in% c("dominance", "additive+dominance"))){
+            Z.part.D <- as.matrix(Matrix::sparseMatrix(i = 1:nrow(M.now.D), j = bango.D, x = rep(1, nrow(M.now.D)),
+                                                       dims = c(nrow(M.now.D), nrow(Mis.D))))
+          }
+        }
+      }else{
+        Mis <- Mis.0
+        Z.part <- Z.part.D <- diag(nrow(M.now))
+      }
+
+      if(window.size != 1){
+        if(weighting.center){
+          weight.Mis <- dnorm((-window.size.half):(window.size.half), 0, window.size.half / 2)[Mis.range2]
+          weight.Mis <- weight.Mis / apply(Mis, 2, sd)
+          if(!is.null(weighting.other)){
+            weight.Mis <- weight.Mis * weighting.other[Mis.range]
+          }
+          weight.Mis <- weight.Mis * window.size / sum(weight.Mis)
+        }else{
+          weight.Mis <- rep(1, window.size)
+          weight.Mis <- weight.Mis / apply(Mis, 2, sd)
+          if(!is.null(weighting.other)){
+            weight.Mis <- weight.Mis * weighting.other[Mis.range]
+          }
+          weight.Mis <- weight.Mis * window.size / sum(weight.Mis)
+        }
+      }else{
+        weight.Mis <- 1
+      }
+
+      if(any(MAF.cut.D)){
+        if(window.size != 1){
+          if(any(test.effect %in% c("dominance", "additive+dominance"))){
+            if(weighting.center){
+              weight.Mis.D <- dnorm((-window.size.half):(window.size.half), 0, window.size.half / 2)[Mis.range2.D]
+              weight.Mis.D <- weight.Mis.D / apply(Mis.D, 2, sd)
+              if(!is.null(weighting.other)){
+                weight.Mis.D <- weight.Mis.D * weighting.other[Mis.range.D]
+              }
+              weight.Mis.D <- weight.Mis.D * window.size.D / sum(weight.Mis.D)
+            }else{
+              weight.Mis.D <- rep(1, window.size.D)
+              weight.Mis.D <- weight.Mis.D / apply(Mis.D, 2, sd)
+              if(!is.null(weighting.other)){
+                weight.Mis.D <- weight.Mis.D * weighting.other[Mis.range.D]
+              }
+              weight.Mis.D <- weight.Mis.D * window.size.D / sum(weight.Mis.D)
+            }
+          }
+        }else{
+          weight.Mis.D <- 1
+        }
+      }
+
+      if(kernel.method != "linear"){
+        if(ncol(Mis) != 1){
+          Mis.weighted <- t(apply(Mis, 1, function(x) x * weight.Mis))
+        }else{
+          Mis.weighted <- as.matrix(apply(Mis, 1, function(x) x * weight.Mis))
+        }
+        D.SNP <- as.matrix(dist(Mis.weighted)) / sqrt(ncol(Mis.weighted))
+
+        if(class(kernel.h) == "character"){
+          hinv <- median((D.SNP ^ 2)[upper.tri(D.SNP ^ 2)])
+          h <- 1 / hinv
+        }else{
+          if(class(kernel.h) == "numeric"){
+            h <- kernel.h
+          }else{
+            stop("kernel.h should be 'tuned' or numeric!")
+          }
+        }
+
+        if(kernel.method == "gaussian"){
+          K.SNP <- exp(- h * D.SNP ^ 2)
+        }else{
+          if(kernel.method == "exponential"){
+            K.SNP <- exp(- h * D.SNP)
+          }else{
+            stop("We only support linear, gaussian and exponential kernel!!!")
+          }
+        }
+
+
+        if(length(ZETA.now) == 1){
+          Gammas0 <- list(K = K.SNP)
+          Ws0 <- list(W = Z.part)
+          Zs0 <- list(Z = diag(nrow(Mis.0)))
+          EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+                                         Zs0 = Zs0, Ws0 = Ws0, Gammas0 = Gammas0,
+                                         gammas.diag = FALSE, X.fix = TRUE, tol = NULL,
+                                         eigen.SGS = eigen.SGS, eigen.G = eigen.G,
+                                         REML = TRUE, pred = FALSE), silent = TRUE)
+          if(class(EMM.res2) == "try-error"){
+            ZETA.now2 <- c(ZETA.now, list(part = list(Z = Z.part, K = K.SNP)))
+            EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL,
+                                    REML = TRUE, pred = FALSE), silent = TRUE)
+          }
+        }else{
+          ZETA.now2 <- c(ZETA.now, list(part = list(Z = Z.part, K = K.SNP)))
+          EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL,
+                                  REML = TRUE, pred = FALSE), silent = TRUE)
+        }
+
+        if(class(EMM.res2) != "try-error"){
+          LL2s <- EMM.res2$LL
+        }else{
+          LL2s <- LL0
+        }
+        df <- 1
+      }else{
+        test.no <- match(test.effect, c("additive", "dominance", "additive+dominance"))
+        if(length(test.no) == 0){
+          stop("The effect to test should be 'additive', 'dominance' or 'additive+dominance'!")
+        }
+
+        if(any(test.effect %in% c("additive", "additive+dominance"))){
+          var.A <- 2 * sum(freq[Mis.range] * (1 - freq[Mis.range]))
+          W.A <- (Mis + 1 - matrix(rep(2 * freq[Mis.range], nrow(Mis)),
+                                   nrow = nrow(Mis), byrow = TRUE)) / sqrt(var.A)
+        }
+
+        if(any(MAF.cut.D)){
+          if(any(test.effect %in% c("dominance", "additive+dominance"))){
+            var.D <- sum(2 * freq[Mis.range.D] * (1 - freq[Mis.range.D]) *
+                           (1 - (2 * freq[Mis.range.D] * (1 - freq[Mis.range.D]))))
+            X3pq <- apply(Mis.D, 1, function(x) {
+              x - (2 * freq[Mis.range.D] * (1 - freq[Mis.range.D]))
+            })
+
+            if(!is.vector(X3pq)){
+              W.D <-  t(X3pq) / sqrt(var.D)
+            }else{
+              W.D <-  as.matrix(X3pq) / sqrt(var.D)
+            }
+          }
+        }
+
+        if(length(ZETA.now) == 1){
+          if(1 %in% test.no){
+            Ws0.A <- list(W.A = W.A)
+            Zs0.A <- list(W.A = Z.part)
+            Gammas0.A <- list(W.A = diag(weight.Mis ^ 2))
+          }
+
+          if(any(MAF.cut.D)){
+            if(2 %in% test.no){
+              Ws0.D <- list(W.D = W.D)
+              Zs0.D <- list(W.D = Z.part.D)
+              Gammas0.D <- list(W.D = diag(weight.Mis.D ^ 2))
+            }
+
+            if(3 %in% test.no){
+              Ws0.AD <- list(W.A = W.A, W.D = W.D)
+              Zs0.AD <- list(W.A = Z.part, W.D = Z.part.D)
+              Gammas0.AD <- list(W.A = diag(weight.Mis ^ 2), W.D = diag(weight.Mis.D ^ 2))
+            }
+          }
+        }else{
+          if(1 %in% test.no){
+            K.A.part <- W.A %*% (t(W.A) * weight.Mis)
+            ZETA.now2.A <- c(ZETA.now, list(part.A = list(Z = Z.part, K = K.A.part)))
+          }
+
+          if(any(MAF.cut.D)){
+            if(2 %in% test.no){
+              K.D.part <- W.D %*% (t(W.D) * weight.Mis.D)
+              ZETA.now2.D <- c(ZETA.now, list(part.D = list(Z = Z.part.D, K = K.D.part)))
+            }
+
+            if(3 %in% test.no){
+              K.A.part <- W.A %*% (t(W.A) * weight.Mis)
+              K.D.part <- W.D %*% (t(W.D) * weight.Mis.D)
+              ZETA.now2.AD <- c(ZETA.now, list(part.A = list(Z = Z.part, K = K.A.part)),
+                                list(part.D = list(Z = Z.part.D, K = K.D.part)))
+            }
+          }
+        }
+
+        LL2s <- df <- rep(NA, length(test.no))
+        for(j in 1:length(test.no)){
+          test.no.now <- test.no[j]
+          if(length(ZETA.now) == 1){
+            if(test.no.now == 1){
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+                                             Zs0 = Zs0.A, Ws0 = Ws0.A, Gammas0 = Gammas0.A,
+                                             gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
+                                             eigen.SGS = eigen.SGS, eigen.G = eigen.G,
+                                             REML = TRUE, pred = FALSE), silent = TRUE)
+            }
+
+            if(test.no.now == 2){
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+                                             Zs0 = Zs0.D, Ws0 = Ws0.D, Gammas0 = Gammas0.D,
+                                             gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
+                                             eigen.SGS = eigen.SGS, eigen.G = eigen.G,
+                                             REML = TRUE, pred = FALSE), silent = TRUE)
+            }
+
+            if(test.no.now == 3){
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+                                             Zs0 = Zs0.AD, Ws0 = Ws0.AD, Gammas0 = Gammas0.AD,
+                                             gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
+                                             eigen.SGS = eigen.SGS, eigen.G = eigen.G,
+                                             REML = TRUE, pred = FALSE), silent = TRUE)
+            }
+
+            if(class(EMM.res2) == "try-error"){
+              if(1 %in% test.no){
+                K.A.part <- W.A %*% (t(W.A) * weight.Mis)
+                ZETA.now2.A <- c(ZETA.now, list(part.A = list(Z = Z.part, K = K.A.part)))
+              }
+
+              if(any(MAF.cut.D)){
+                if(2 %in% test.no){
+                  K.D.part <- W.D %*% (t(W.D) * weight.Mis.D)
+                  ZETA.now2.D <- c(ZETA.now, list(part.D = list(Z = Z.part.D, K = K.D.part)))
+                }
+
+                if(3 %in% test.no){
+                  K.A.part <- W.A %*% (t(W.A) * weight.Mis)
+                  K.D.part <- W.D %*% (t(W.D) * weight.Mis.D)
+                  ZETA.now2.AD <- c(ZETA.now, list(part.A = list(Z = Z.part, K = K.A.part)),
+                                    list(part.D = list(Z = Z.part.D, K = K.D.part)))
+                }
+              }
+
+              if(test.no.now == 1){
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL,
+                                        REML = TRUE, pred = FALSE), silent = TRUE)
+              }
+
+              if(test.no.now == 2){
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL,
+                                        REML = TRUE, pred = FALSE), silent = TRUE)
+              }
+
+              if(test.no.now == 3){
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL,
+                                        REML = TRUE, pred = FALSE), silent = TRUE)
+              }
+            }
+          }else{
+            if(test.no.now == 1){
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL,
+                                      REML = TRUE, pred = FALSE), silent = TRUE)
+            }
+
+            if(test.no.now == 2){
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL,
+                                      REML = TRUE, pred = FALSE), silent = TRUE)
+            }
+
+            if(test.no.now == 3){
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL,
+                                      REML = TRUE, pred = FALSE), silent = TRUE)
+            }
+          }
+
+          if(class(EMM.res2) != "try-error"){
+            LL2 <- EMM.res2$LL
+          }else{
+            LL2 <- LL0
+          }
+          LL2s[j] <- LL2
+        }
+        df[test.no == 1] <- 1
+        df[test.no == 2] <- 1
+        df[test.no == 3] <- 2
+      }
+
+
+      deviances <- 2 * (LL2s - LL0)
+      scores.now <- ifelse(deviances <= 0, 0, -log10((1 - chi0.mixture) *
+                                                       pchisq(q = deviances, df = df, lower.tail = FALSE)))
+    } else {
+      scores.now <- rep(NA, ncol.scores)
+    }
+
+    return(list(scores = scores.now, window.center = window.center))
+  }
+
+  all.res <- pbmcapply::pbmclapply(1:n.scores, score.calc.LR.MC.oneSNP, mc.cores = n.core)
+  scores <- unlist(lapply(all.res, function(x) x$scores))
+  window.centers <- unlist(lapply(all.res, function(x) x$window.center))
+  scores <- matrix(scores, nrow = n.scores, ncol = ncol.scores, byrow = TRUE)
+
+  if(is.null(gene.set)){
+    rownames(scores) <- window.centers
+  }else{
+    rownames(scores) <- gene.name
+  }
+
+  if(kernel.method == "linear"){
+    colnames(scores) <- test.effect
+  }else{
+    colnames(scores) <- kernel.method
+  }
+  cat("\n")
+  return(scores)
+}
+
+
+
+
+
+
+
+
+
+
 #' Calculate -log10(p) of each SNP-set by the score test
 #'
 #' @description This function calculates -log10(p) of each SNP-set by the score test.
@@ -1771,6 +2411,418 @@ score.calc.score <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0,
   cat("\n")
   return(scores)
 }
+
+
+
+
+
+#' Calculate -log10(p) of each SNP-set by the score test
+#'
+#' @description This function calculates -log10(p) of each SNP-set by the score test.
+#' First, the function calculates the score statistic
+#' without solving the multi-kernel mixed model for each SNP-set.
+#' Then it performs the score test by using the fact that the score statistic follows the chi-square distribution.
+#'
+#' @importFrom Matrix rankMatrix
+#' @importFrom cluster pam
+#'
+#' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
+#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' For example, ZETA = list(A = list(Z = Z, K = K))
+#' Please set names of list "Z" and "K"!
+#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param LL0 The log-likelihood for the null model.
+#' @param Gu n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
+#' @param Ge n x n matrix. You should assign identity matrix I (diag(n)).
+#' @param P0 n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+#' \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.
+#' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
+#' @param map Data frame of map information where the first column is the marker names,
+#' the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.
+#' @param kernel.method It determines how to calculate kernel. There are three methods.
+#' \describe{
+#' \item{"gaussian"}{It is the default method. Gaussian kernel is calculated by distance matrix.}
+#' \item{"exponential"}{When this method is selected, exponential kernel is calculated by distance matrix.}
+#' \item{"linear"}{When this method is selected, linear kernel is calculated by A.mat.}
+#'}
+#' @param kernel.h The hyper parameter for gaussian or exponential kernel.
+#' If kernel.h = "tuned", this hyper parameter is calculated as the median of off-diagonals of distance matrix of genotype data.
+#' @param haplotype If the number of lines of your data is large (maybe > 100), you should set haplotype = TRUE.
+#'             When haplotype = TRUE, haplotype-based kernel will be used for calculating -log10(p).
+#'             (So the dimension of this gram matrix will be smaller.)
+#'             The result won't be changed, but the time for the calculation will be shorter.
+#' @param num.hap When haplotype = TRUE, you can set the number of haplotypes which you expect.
+#'           Then similar arrays are considered as the same haplotype, and then make kernel(K.SNP) whose dimension is num.hap x num.hap.
+#'           When num.hap = NULL (default), num.hap will be set as the maximum number which reflects the difference between lines.
+#' @param test.effect Effect of each marker to test. You can choose "test.effect" from "additive", "dominance" and "additive+dominance".
+#' You also can choose more than one effect, for example, test.effect = c("additive", "aditive+dominance")
+#' @param window.size.half This argument decides how many SNPs (around the SNP you want to test) are used to calculated K.SNP.
+#' More precisely, the number of SNPs will be 2 * window.size.half + 1.
+#' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
+#' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
+#' @param chi0.mixture RAINBOW assumes the test statistic \eqn{l1' F l1} is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
+#' where l1 is the first derivative of the log-likelihood and F is the Fisher information. And r is the degree of freedom.
+#' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
+#' @param weighting.center In kernel-based GWAS, weights according to the Gaussian distribution (centered on the tested SNP) are taken into account when calculating the kernel if Rainbow = TRUE.
+#'           If Rainbow = FALSE, weights are not taken into account.
+#' @param weighting.other You can set other weights in addition to weighting.center. The length of this argument should be equal to the number of SNPs.
+#'           For example, you can assign SNP effects from the information of gene annotation.
+#' @param gene.set If you have information of gene, you can use it to perform kernel-based GWAS.
+#'            You should assign your gene information to gene.set in the form of a "data.frame" (whose dimension is (the number of gene) x 2).
+#'            In the first column, you should assign the gene name. And in the second column, you should assign the names of each marker,
+#'            which correspond to the marker names of "geno" argument.
+#' @param min.MAF Specifies the minimum minor allele frequency (MAF).
+#' If a marker has a MAF less than min.MAF, it is assigned a zero score.
+#' @param count When count is TRUE, you can know how far RGWAS has ended with percent display.
+#'
+#' @return -log10(p) for each SNP-set
+#'
+#' @references Listgarten, J. et al. (2013) A powerful and efficient set test
+#'  for genetic markers that handles confounders. Bioinformatics. 29(12): 1526-1533.
+#'
+#' Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based
+#'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
+#'
+#'
+#' @export
+#'
+score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.core = 2,
+                                map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
+                                test.effect = "additive", window.size.half = 5, window.slide = 1,
+                                chi0.mixture = 0.5, weighting.center = TRUE, weighting.other = NULL,
+                                gene.set = NULL, min.MAF = 0.02, count = TRUE){
+  chr <- map[, 2]
+  chr.tab <- table(chr)
+  chr.max <- max(chr)
+  chr.cum <- cumsum(chr.tab)
+  n.scores.each <- (chr.tab + (window.slide - 1)) %/% window.slide
+  cum.n.scores <- cumsum(n.scores.each)
+  if(is.null(gene.set)){
+    n.scores <- sum(n.scores.each)
+  }else{
+    gene.names <- as.character(gene.set[, 1])
+    mark.id <- as.character(gene.set[, 2])
+    gene.name <- as.character(unique(gene.names))
+    n.scores <- length(unique(gene.set[, 1]))
+  }
+
+  if(kernel.method == "linear"){
+    ncol.scores <- length(test.effect)
+  }else{
+    ncol.scores <- 1
+  }
+
+  window.centers <- rep(NA, n.scores)
+  freq <- apply(M.now, 2, function(x) mean(x + 1, na.rm = TRUE) / 2)
+  MAF <- pmin(freq, 1 - freq)
+
+  if(any(test.effect %in% c("dominance", "additive+dominance"))){
+    M.now.D <- 1 - abs(M.now)
+    M.now.D.freq <- colMeans(M.now.D)
+    MAF.D <- pmin(M.now.D.freq, 1 - M.now.D.freq)
+  }
+
+  score.calc.score.MC.oneSNP <- function(markNo) {
+    if(is.null(gene.set)){
+      markNo.chr <- min(which(markNo - cum.n.scores <= 0))
+      if(markNo.chr >= 2){
+        window.center <- window.slide * (markNo - cum.n.scores[markNo.chr - 1] - 1) + chr.cum[markNo.chr - 1] + 1
+      }else{
+        window.center <- window.slide * (markNo - 1) + 1
+      }
+      names(window.center) <- markNo.chr
+      Theories1 <-  window.center < window.size.half + 1
+      for(r in 1:(chr.max - 1)){
+        Theory1 <- chr.cum[r] < window.center & window.center < window.size.half + 1 + chr.cum[r]
+        Theories1 <- c(Theories1, Theory1)
+      }
+      rule1 <- sum(Theories1) != 0
+
+
+      Theories2  <- NULL
+      for(r in 1:chr.max){
+        Theory2 <- chr.cum[r] - (window.size.half + 1) < window.center & window.center <= chr.cum[r]
+        Theories2 <- c(Theories2, Theory2)
+      }
+      rule2 <- sum(Theories2) != 0
+
+
+      if(rule1 & rule2){
+        Mis.range <- which(chr == markNo.chr)
+        Mis.range.2 <- which(chr == markNo.chr) - window.center + 1 + window.size.half
+      }else{
+        if(rule1){
+          near.min <- c(0, chr.cum)[which.min(abs(window.center - c(0, chr.cum)))]
+          Mis.range <- (near.min + 1):(window.center + window.size.half)
+          Mis.range2 <- (2 * window.size.half + 2 - length(Mis.range)):(2 * window.size.half + 1)
+        }else{
+          if(rule2){
+            near.max <- c(0, chr.cum)[which.min(abs(window.center - c(0, chr.cum)))]
+            Mis.range <- (window.center - window.size.half):near.max
+            Mis.range2 <- 1:length(Mis.range)
+          }else{
+            Mis.range <- (window.center - window.size.half):(window.center + window.size.half)
+            Mis.range2 <- 1:(2 * window.size.half + 1)
+          }
+        }
+      }
+    }else{
+      mark.name.now <- mark.id[gene.names == gene.name[markNo]]
+      Mis.range <- match(mark.name.now, map[, 1])
+      Mis.range2 <- 1:length(Mis.range)
+      weighting.center <- FALSE
+    }
+
+    Mis.0 <- M.now[, Mis.range, drop = FALSE]
+    MAF.cut <- MAF[Mis.range] >= min.MAF
+    if(any(test.effect %in% c("dominance", "additive+dominance"))){
+      Mis.D.0 <- M.now.D[, Mis.range, drop = FALSE]
+      MAF.cut.D <- MAF.D[Mis.range] > 0
+    }else{
+      MAF.cut.D <- rep(TRUE, length(MAF.cut))
+    }
+
+    if(any(MAF.cut)){
+      Mis.0 <- Mis.0[, MAF.cut, drop = FALSE]
+      Mis.range <- Mis.range[MAF.cut]
+      Mis.range2 <- Mis.range2[MAF.cut]
+      window.size <- ncol(Mis.0)
+      if(any(MAF.cut.D)){
+        if(any(test.effect %in% c("dominance", "additive+dominance"))){
+          Mis.D.0 <- Mis.D.0[, MAF.cut.D, drop = FALSE]
+          Mis.range.D <- Mis.range[MAF.cut.D]
+          Mis.range2.D <- Mis.range2[MAF.cut.D]
+          window.size.D <- ncol(Mis.D.0)
+        }
+      }
+
+      if(haplotype){
+        if(is.null(num.hap)){
+          Mis.fac <- factor(apply(Mis.0, 1, function(x) paste(x, collapse = "")))
+          Mis <- Mis.0[!duplicated(as.numeric(Mis.fac)), , drop = FALSE]
+
+          bango <- as.factor(as.numeric(Mis.fac))
+          levels(bango) <- order(unique(bango))
+          bango <- as.numeric(as.character(bango))
+          if(any(MAF.cut.D)){
+            if(any(test.effect %in% c("dominance", "additive+dominance"))){
+              Mis.D.fac <- factor(apply(Mis.D.0, 1, function(x) paste(x, collapse = "")))
+              Mis.D <- matrix(Mis.D.0[!duplicated(as.numeric(Mis.D.fac)), ],
+                              nrow = length(levels(Mis.D.fac)))
+
+              bango.D <- as.factor(as.numeric(Mis.D.fac))
+              levels(bango.D) <- order(unique(bango.D))
+              bango.D <- as.numeric(as.character(bango.D))
+            }
+          }
+        }else{
+          kmed.res <- cluster::pam(Mis.0, k = num.hap)
+          Mis <- kmed.res$medoids
+          bango <- kmed.res$clustering
+          if(any(MAF.cut.D)){
+            if(any(test.effect %in% c("dominance", "additive+dominance"))){
+              kmed.res.D <- cluster::pam(Mis.D.0, k = num.hap)
+              Mis.D <- kmed.res.D$medoids
+              bango.D <- kmed.res.D$clustering
+            }
+          }
+        }
+        Z.part <- as.matrix(Matrix::sparseMatrix(i = 1:nrow(M.now), j = bango, x = rep(1, nrow(M.now)),
+                                                 dims = c(nrow(M.now), nrow(Mis))))
+        if(any(MAF.cut.D)){
+          if(any(test.effect %in% c("dominance", "additive+dominance"))){
+            Z.part.D <- as.matrix(Matrix::sparseMatrix(i = 1:nrow(M.now.D), j = bango.D, x = rep(1, nrow(M.now.D)),
+                                                       dims = c(nrow(M.now.D), nrow(Mis.D))))
+          }
+        }
+      }else{
+        Mis <- Mis.0
+        Z.part <- Z.part.D <- diag(nrow(M.now))
+      }
+
+      if(window.size != 1){
+        if(weighting.center){
+          weight.Mis <- dnorm((-window.size.half):(window.size.half), 0, window.size.half / 2)[Mis.range2]
+          weight.Mis <- weight.Mis / apply(Mis, 2, sd)
+          if(!is.null(weighting.other)){
+            weight.Mis <- weight.Mis * weighting.other[Mis.range]
+          }
+          weight.Mis <- weight.Mis * window.size / sum(weight.Mis)
+        }else{
+          weight.Mis <- rep(1, window.size)
+          weight.Mis <- weight.Mis / apply(Mis, 2, sd)
+          if(!is.null(weighting.other)){
+            weight.Mis <- weight.Mis * weighting.other[Mis.range]
+          }
+          weight.Mis <- weight.Mis * window.size / sum(weight.Mis)
+        }
+      }else{
+        weight.Mis <- 1
+      }
+
+      if(any(MAF.cut.D)){
+        if(window.size != 1){
+          if(any(test.effect %in% c("dominance", "additive+dominance"))){
+            if(weighting.center){
+              weight.Mis.D <- dnorm((-window.size.half):(window.size.half), 0, window.size.half / 2)[Mis.range2.D]
+              weight.Mis.D <- weight.Mis.D / apply(Mis.D, 2, sd)
+              if(!is.null(weighting.other)){
+                weight.Mis.D <- weight.Mis.D * weighting.other[Mis.range.D]
+              }
+              weight.Mis.D <- weight.Mis.D * window.size.D / sum(weight.Mis.D)
+            }else{
+              weight.Mis.D <- rep(1, window.size.D)
+              weight.Mis.D <- weight.Mis.D / apply(Mis.D, 2, sd)
+              if(!is.null(weighting.other)){
+                weight.Mis.D <- weight.Mis.D * weighting.other[Mis.range.D]
+              }
+              weight.Mis.D <- weight.Mis.D * window.size.D / sum(weight.Mis.D)
+            }
+          }
+        }else{
+          weight.Mis.D <- 1
+        }
+      }
+
+      if(kernel.method != "linear"){
+        if(ncol(Mis) != 1){
+          Mis.weighted <- t(apply(Mis, 1, function(x) x * weight.Mis))
+        }else{
+          Mis.weighted <- as.matrix(apply(Mis, 1, function(x) x * weight.Mis))
+        }
+
+        D.SNP <- as.matrix(dist(Mis.weighted)) / sqrt(ncol(Mis.weighted))
+
+        if(class(kernel.h) == "character"){
+          hinv <- median((D.SNP ^ 2)[upper.tri(D.SNP ^ 2)])
+          h <- 1 / hinv
+        }else{
+          if(class(kernel.h) == "numeric"){
+            h <- kernel.h
+          }else{
+            stop("kernel.h should be 'tuned' or numeric!")
+          }
+        }
+
+        if(kernel.method == "gaussian"){
+          K.SNP <- exp(- h * D.SNP ^ 2)
+        }else{
+          if(kernel.method == "exponential"){
+            K.SNP <- exp(- h * D.SNP)
+          }else{
+            stop("We only support linear, gaussian and exponential kernel!!!")
+          }
+        }
+
+        Ws <- list(W = Z.part)
+        Gammas <- list(Gamma = K.SNP)
+        scores.now <- score.linker.cpp(y, Ws = Ws, Gammas = Gammas,
+                                       gammas.diag = FALSE, Gu = Gu, Ge = Ge,
+                                       P0 = P0, chi0.mixture = chi0.mixture)
+      }else{
+        test.no <- match(test.effect, c("additive", "dominance", "additive+dominance"))
+        if(length(test.no) == 0){
+          stop("The effect to test should be 'additive', 'dominance' or 'additive+dominance'!")
+        }
+
+        if(any(test.effect %in% c("additive", "additive+dominance"))){
+          var.A <- 2 * sum(freq[Mis.range] * (1 - freq[Mis.range]))
+          W.A <- (Mis + 1 - matrix(rep(2 * freq[Mis.range], nrow(Mis)),
+                                   nrow = nrow(Mis), byrow = TRUE)) / sqrt(var.A)
+        }
+        if(any(MAF.cut.D)){
+          if(any(test.effect %in% c("dominance", "additive+dominance"))){
+            var.D <- sum(2 * freq[Mis.range.D] * (1 - freq[Mis.range.D]) *
+                           (1 - (2 * freq[Mis.range.D] * (1 - freq[Mis.range.D]))))
+            X3pq <- apply(Mis.D, 1, function(x) {
+              x - (2 * freq[Mis.range.D] * (1 - freq[Mis.range.D]))
+            })
+            if(!is.vector(X3pq)){
+              W.D <-  t(X3pq) / sqrt(var.D)
+            }else{
+              W.D <-  as.matrix(X3pq) / sqrt(var.D)
+            }
+          }
+        }
+
+        if(1 %in% test.no){
+          Ws.A <- list(W.A = Z.part %*% W.A)
+          Gammas.A <- list(W.A = diag(weight.Mis ^ 2))
+        }
+
+        if(any(MAF.cut.D)){
+          if(2 %in% test.no){
+            Ws.D <- list(W.D = Z.part.D %*% W.D)
+            Gammas.D <- list(W.D = diag(weight.Mis.D ^ 2))
+          }
+
+          if(3 %in% test.no){
+            Ws.AD <- list(W.A = Z.part %*% W.A, Z.part.D %*% W.D)
+            Gammas.AD <- list(W.A = diag(weight.Mis ^ 2), W.D = diag(weight.Mis.D ^ 2))
+          }
+        }
+
+        scores.now <- rep(NA, length(test.no))
+        for(j in 1:length(test.no)){
+          test.no.now <- test.no[j]
+          if(test.no.now == 1){
+            score.now <- score.linker.cpp(y, Ws = Ws.A, Gammas = Gammas.A,
+                                          gammas.diag = TRUE, Gu = Gu, Ge = Ge,
+                                          P0 = P0, chi0.mixture = chi0.mixture)
+          }
+
+          if(test.no.now == 2){
+            if(any(MAF.cut.D)){
+              score.now <- score.linker.cpp(y, Ws = Ws.D, Gammas = Gammas.D,
+                                            gammas.diag = TRUE, Gu = Gu, Ge = Ge,
+                                            P0 = P0, chi0.mixture = chi0.mixture)
+            }else{
+              score.now <- 0
+            }
+          }
+
+          if(test.no.now == 3){
+            if(any(MAF.cut.D)){
+              score.now <- score.linker.cpp(y, Ws = Ws.AD, Gammas = Gammas.AD,
+                                            gammas.diag = TRUE, Gu = Gu, Ge = Ge,
+                                            P0 = P0, chi0.mixture = chi0.mixture)
+            }else{
+              score.now <- 0
+            }
+          }
+
+          scores.now[j] <- score.now
+        }
+      }
+    } else {
+      scores.now <- rep(NA, ncol.scores)
+    }
+
+    return(list(scores = scores.now, window.center = window.center))
+  }
+
+  all.res <- pbmcapply::pbmclapply(1:n.scores, score.calc.score.MC.oneSNP, mc.cores = n.core)
+  scores <- unlist(lapply(all.res, function(x) x$scores))
+  window.centers <- unlist(lapply(all.res, function(x) x$window.center))
+  scores <- matrix(scores, nrow = n.scores, ncol = ncol.scores, byrow = TRUE)
+
+
+  if(is.null(gene.set)){
+    rownames(scores) <- window.centers
+  }else{
+    rownames(scores) <- gene.name
+  }
+
+  if(kernel.method == "linear"){
+    colnames(scores) <- test.effect
+  }else{
+    colnames(scores) <- kernel.method
+  }
+  cat("\n")
+  return(scores)
+}
+
 
 
 

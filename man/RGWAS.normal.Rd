@@ -47,7 +47,7 @@ If a marker has a MAF less than min.MAF, it is assigned a zero score.}
 \item{P3D}{When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 When P3D = FALSE, variance components are estimated by REML for each marker separately.}
 
-\item{n.core}{Setting n.core > 1 will enable parallel execution on a machine with multiple cores (use only at UNIX command line).}
+\item{n.core}{Setting n.core > 1 will enable parallel execution on a machine with multiple cores.}
 
 \item{sig.level}{Significance level for the threshold. The default is 0.05.}
 
