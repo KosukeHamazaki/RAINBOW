@@ -1965,15 +1965,19 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
       scores.now <- rep(NA, ncol.scores)
     }
 
-    return(list(scores = scores.now, window.center = window.center))
+    if(is.null(gene.set)){
+      return(list(scores = scores.now, window.center = window.center))
+    } else {
+      return(list(scores = scores.now))
+    }
   }
 
   all.res <- pbmcapply::pbmclapply(1:n.scores, score.calc.LR.MC.oneSNP, mc.cores = n.core)
   scores <- unlist(lapply(all.res, function(x) x$scores))
-  window.centers <- unlist(lapply(all.res, function(x) x$window.center))
   scores <- matrix(scores, nrow = n.scores, ncol = ncol.scores, byrow = TRUE)
 
   if(is.null(gene.set)){
+    window.centers <- unlist(lapply(all.res, function(x) x$window.center))
     rownames(scores) <- window.centers
   }else{
     rownames(scores) <- gene.name
@@ -2799,16 +2803,20 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
       scores.now <- rep(NA, ncol.scores)
     }
 
-    return(list(scores = scores.now, window.center = window.center))
+    if(is.null(gene.set)){
+      return(list(scores = scores.now, window.center = window.center))
+    } else {
+      return(list(scores = scores.now))
+    }
   }
 
   all.res <- pbmcapply::pbmclapply(1:n.scores, score.calc.score.MC.oneSNP, mc.cores = n.core)
   scores <- unlist(lapply(all.res, function(x) x$scores))
-  window.centers <- unlist(lapply(all.res, function(x) x$window.center))
   scores <- matrix(scores, nrow = n.scores, ncol = ncol.scores, byrow = TRUE)
 
 
   if(is.null(gene.set)){
+    window.centers <- unlist(lapply(all.res, function(x) x$window.center))
     rownames(scores) <- window.centers
   }else{
     rownames(scores) <- gene.name
