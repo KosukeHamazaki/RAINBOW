@@ -1,5 +1,9 @@
 ---
 title: "RAINBOW"
+author: 
+- Kosuke Hamazaki
+- Hiroyoshi Iwata
+date: "2019-09-26"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{RAINBOW}
@@ -10,7 +14,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.dpi=96
 )
 ```
 
