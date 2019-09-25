@@ -9,11 +9,11 @@ spectralG.cpp(ZETA, ZWs = NULL, X = NULL, weights = 1,
   tol = NULL, df.H = NULL)
 }
 \arguments{
-\item{ZETA}{A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+\item{ZETA}{A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 For example, ZETA = list(A = list(Z = Z, K = K))
 Please set names of list "Z" and "K"!}
 
-\item{X}{\eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
+\item{X}{\eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
 
 \item{weights}{If the length of ZETA >= 2, you should assign the ratio of variance components to this argument.}
 

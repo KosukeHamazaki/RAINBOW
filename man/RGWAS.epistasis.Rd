@@ -19,20 +19,10 @@ RGWAS.epistasis(pheno, geno, ZETA = NULL, covariate = NULL,
 \item{geno}{Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
 Columns 4 and higher contain the marker scores for each line, coded as {-1, 0, 1} = {aa, Aa, AA}.}
 
-\item{ZETA}{A list of covariance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects.
-Please set names of list "Z" and "K"! You can use more than one kernel matrix, but the computational cost gets greater when using more than one kernel.
-For example,
-\describe{
-ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
-\item{Z.A, Z.D}{Design matrix (n x m) for the random effects. So, in many cases, you can use the identity matrix.}
-\item{K.A, K.D}{Different kernels which express some relationships between lines.
-For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
-}}
-
-\item{covariate}{A n x 1 vector or a n x p1 matrix. You can insert continuous values, such as other traits or genotype score for special markers.
+\item{covariate}{A \eqn{n \times 1} vector or a \eqn{n \times p _ 1} matrix. You can insert continuous values, such as other traits or genotype score for special markers.
 This argument is regarded as one of the fixed effects.}
 
-\item{covariate.factor}{A n x p2 dataframe. You should assign a factor vector for each column.
+\item{covariate.factor}{A \eqn{n \times p _ 2} dataframe. You should assign a factor vector for each column.
 Then RGWAS changes this argument into model matrix, and this model matrix will be included in the model as fixed effects.}
 
 \item{structure.matrix}{You can use structure matrix calculated by structure analysis when there are population structure.

@@ -4,7 +4,7 @@
 #'
 #' \deqn{y = X \beta + Z u + e}
 #'
-#' where effects of major genes are regarded as fixed effects \eqn{Generate pseudo phenotypic values\beta} and
+#' where effects of major genes are regarded as fixed effects \eqn{\beta} and
 #' polygenetic effects are regarded as random effects \eqn{u}.
 #' The variances of \eqn{u} and \eqn{e} are automatically determined by the heritability.
 #'
@@ -24,7 +24,7 @@
 #' \describe{
 #' ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
 #' \item{Z.A, Z.D}{Design matrix (n x m) for the random effects. So, in many cases, you can use the identity matrix.}
-#' \item{K.A, K.D}{Different kernels which express some relationships between lines.
+#' \item{K.A, K.D}{Different kernels which express some relationships between lines.}
 #' For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
 #' }
 #' @param x2 genotype matrix to calculate additive relationship matrix when Z.ETA = NULL.

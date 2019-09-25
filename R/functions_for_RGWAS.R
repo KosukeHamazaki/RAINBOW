@@ -216,8 +216,8 @@ design.Z <- function(pheno.labels, geno.names) {
 #' Function to modify genotype and phenotype data to match
 #'
 #'
-#' @param pheno.mat A n1 x p matrix of phenotype data. rownames(pheno.mat) should be genotype (line; accesion; variety) names.
-#' @param geno.mat A n2 x m matrix of marker genotype data. rownames(geno.mat) should be genotype (line; accesion; variety) names.
+#' @param pheno.mat A \eqn{n _ 1 \times p} matrix of phenotype data. rownames(pheno.mat) should be genotype (line; accesion; variety) names.
+#' @param geno.mat A \eqn{n _ 2 \times m} matrix of marker genotype data. rownames(geno.mat) should be genotype (line; accesion; variety) names.
 #' @param pheno.labels A vector of genotype (line; accesion; variety) names which correpond to phenotypic values.
 #' @param geno.names  A vector of genotype (line; accesion; variety) names for marker genotype data (duplication is not recommended).
 #' @param map Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
@@ -686,15 +686,19 @@ qq <- function(scores) {
 #' @importFrom Matrix rankMatrix
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param Hinv the inverse of \eqn{H = ZKZ' + \lambda I} where \eqn{\lambda = \sigma^2_e / \sigma^2_u}.
 #' @param P3D When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 #' When P3D = FALSE, variance components are estimated by REML for each marker separately.
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -791,23 +795,27 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
 
 
 
-#' Calculate -log10(p) for single-SNP GWAS
+#' Calculate -log10(p) for single-SNP GWAS (multi-cores)
 #'
 #' @description Calculate -log10(p) of each SNP by the Wald test.
 #'
 #' @importFrom Matrix rankMatrix
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param Hinv the inverse of \eqn{H = ZKZ' + \lambda I} where \eqn{\lambda = \sigma^2_e / \sigma^2_u}.
 #' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
 #' @param P3D When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 #' When P3D = FALSE, variance components are estimated by REML for each marker separately.
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -898,7 +906,7 @@ score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRU
 
 #' Change a matrix to full-rank matrix
 #'
-#' @param X n x p matrix which you want to change into full-rank matrix.
+#' @param X \eqn{n \times p} matrix which you want to change into full-rank matrix.
 #'
 #' @return a full-rank matrix
 #'
@@ -934,18 +942,26 @@ make.full <- function(X) {
 #' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param LL0 The log-likelihood for the null model.
-#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.SGS A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -1462,7 +1478,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 
 
 
-#' Calculate -log10(p) of each SNP-set by the LR test (multi cores)
+#' Calculate -log10(p) of each SNP-set by the LR test (multi-cores)
 #'
 #' @description This function calculates -log10(p) of each SNP-set by the LR test.
 #' First, the function solves the multi-kernel mixed model and calaculates the maximum restricted log likelihood.
@@ -1476,18 +1492,26 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 #' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param LL0 The log-likelihood for the null model.
-#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.SGS A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -2012,15 +2036,15 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
 #' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param LL0 The log-likelihood for the null model.
-#' @param Gu n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
-#' @param Ge n x n matrix. You should assign identity matrix I (diag(n)).
-#' @param P0 n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+#' @param Gu \eqn{n \times n} matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
+#' @param Ge \eqn{n \times n} matrix. You should assign identity matrix I (diag(n)).
+#' @param P0 \eqn{n \times n} matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
 #' \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.
 #' @param map Data frame of map information where the first column is the marker names,
 #' the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.
@@ -2420,7 +2444,7 @@ score.calc.score <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0,
 
 
 
-#' Calculate -log10(p) of each SNP-set by the score test
+#' Calculate -log10(p) of each SNP-set by the score test (multi-cores)
 #'
 #' @description This function calculates -log10(p) of each SNP-set by the score test.
 #' First, the function calculates the score statistic
@@ -2431,15 +2455,15 @@ score.calc.score <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0,
 #' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param LL0 The log-likelihood for the null model.
-#' @param Gu n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
-#' @param Ge n x n matrix. You should assign identity matrix I (diag(n)).
-#' @param P0 n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+#' @param Gu \eqn{n \times n} matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
+#' @param Ge \eqn{n \times n} matrix. You should assign identity matrix I (diag(n)).
+#' @param P0 \eqn{n \times n} matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
 #' \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.
 #' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
 #' @param map Data frame of map information where the first column is the marker names,
@@ -2842,18 +2866,26 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 #' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param LL0 The log-likelihood for the null model.
-#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.SGS A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -3428,14 +3460,14 @@ score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
 #' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
-#' @param ZETA.now A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X.now \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
-#' @param Gu n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
-#' @param Ge n x n matrix. You should assign identity matrix I (diag(n)).
-#' @param P0 n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param Gu \eqn{n \times n} matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
+#' @param Ge \eqn{n \times n} matrix. You should assign identity matrix I (diag(n)).
+#' @param P0 \eqn{n \times n} matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
 #' \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.
 #' @param map Data frame of map information where the first column is the marker names,
 #' the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.

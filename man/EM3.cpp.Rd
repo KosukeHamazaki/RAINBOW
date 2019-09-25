@@ -8,20 +8,28 @@ EM3.cpp(y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL,
   tol = NULL, n.thres = 450, REML = TRUE, pred = TRUE)
 }
 \arguments{
-\item{y}{\eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.}
+\item{y}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
 
-\item{X0}{\eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
+\item{X0}{\eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
 
 \item{ZETA}{A list of variance matrices and its design matrices of random effects. You can use more than one kernel matrix.
 For example, ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D)) (A for additive, D for dominance)
 Please set names of lists "Z" and "K"!}
 
-\item{eigen.G}{A list with $values : eigen values and $vectors : eigen vectors.
+\item{eigen.G}{A list with
+\describe{
+\item{$values}{eigen values}
+\item{$vectors}{eigen vectors}
+}
 The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
 We recommend you assign the result of the eigen decomposition beforehand for time saving.}
 
-\item{eigen.SGS}{A list with $values : eigen values and $vectors : eigen vectors.
+\item{eigen.SGS}{A list with
+\describe{
+\item{$values}{eigen values}
+\item{$vectors}{eigen vectors}
+}
 The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
@@ -47,7 +55,7 @@ If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "
 \item{$u}{BLUP(\eqn{u})}
 \item{$weights}{the proportion of each genetic variance (corresponding to each kernel of ZETA) to Vu}
 \item{$LL}{maximized log-likelihood (full or restricted, depending on method)}
-\item{$Vinv}{the inverse of \eqn{V = Vu x ZKZ' + Ve x I}}
+\item{$Vinv}{the inverse of \eqn{V = Vu \times ZKZ' + Ve \times I}}
 \item{$Hinv}{the inverse of \eqn{H = ZKZ' + \lambda I}}
 }
 }
@@ -56,7 +64,7 @@ This function solves the following multi-kernel linear mixed effects model.
 
 \eqn{y = X \beta + \sum _{l=1} ^ {L} Z _ {l} u _ {l} + \epsilon}
 
-where \eqn{Var[y] = \sum _{l=1} ^ {L} Z _ {l} K _ {l} Z _ {l}' \sigma _ {l} ^ 2 + I _ \sigma _ {e} ^ {2}}.
+where \eqn{Var[y] = \sum _{l=1} ^ {L} Z _ {l} K _ {l} Z _ {l}' \sigma _ {l} ^ 2 + I \sigma _ {e} ^ {2}}.
 }
 \examples{
 ### Import RAINBOW

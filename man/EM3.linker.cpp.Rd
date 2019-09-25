@@ -11,21 +11,21 @@ EM3.linker.cpp(y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
   REML = TRUE, pred = TRUE)
 }
 \arguments{
-\item{y0}{\eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.}
+\item{y0}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
 
-\item{X0}{\eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
+\item{X0}{\eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
 
-\item{ZETA}{A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+\item{ZETA}{A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 For example, ZETA = list(A = list(Z = Z, K = K))
 Please set names of list "Z" and "K"!}
 
-\item{Zs0}{A list of design matrices (Z; n x m matrix) for Ws.
+\item{Zs0}{A list of design matrices (Z; \eqn{n \times m} matrix) for Ws.
 For example, Zs0 = list(A.part = Z.A.part, D.part = Z.D.part)}
 
-\item{Ws0}{A list of low rank matrices (W; m x k matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
+\item{Ws0}{A list of low rank matrices (W; \eqn{m \times k} matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
 For example, Ws0 = list(A.part = W.A, D.part = W.D)}
 
-\item{Gammas0}{A list of matrices for weighting SNPs (Gamma; k x k matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
+\item{Gammas0}{A list of matrices for weighting SNPs (Gamma; \eqn{k \times k} matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
 For example, if there is no weighting, Gammas0 = lapply(Ws0, function(x) diag(ncol(x)))}
 
 \item{gammas.diag}{If each Gamma is the diagonal matrix, please set this argument TRUE. The calculationtime can be saved.}
@@ -38,7 +38,11 @@ You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
 We recommend you assign the result of the eigen decomposition beforehand for time saving.}
 
-\item{eigen.G}{A list with $values : eigen values and $vectors : eigen vectors.
+\item{eigen.G}{A list with
+\describe{
+\item{$values}{eigen values}
+\item{$vectors}{eigen vectors}
+}
 The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
 We recommend you assign the result of the eigen decomposition beforehand for time saving.}
@@ -65,7 +69,7 @@ If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "
 \item{$u}{BLUP(\eqn{u})}
 \item{$weights}{the proportion of each genetic variance (corresponding to each kernel of ZETA) to Vu}
 \item{$LL}{maximized log-likelihood (full or restricted, depending on method)}
-\item{$Vinv}{the inverse of \eqn{V = Vu x ZKZ' + Ve x I}}
+\item{$Vinv}{the inverse of \eqn{V = Vu \times ZKZ' + Ve \times I}}
 \item{$Hinv}{the inverse of \eqn{H = ZKZ' + \lambda I}}
 }
 }

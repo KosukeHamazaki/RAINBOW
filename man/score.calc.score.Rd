@@ -14,21 +14,21 @@ score.calc.score(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, map,
 \arguments{
 \item{M.now}{n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.}
 
-\item{y}{\eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.}
+\item{y}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
 
-\item{X.now}{\eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
+\item{X.now}{\eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
 
-\item{ZETA.now}{A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+\item{ZETA.now}{A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 For example, ZETA = list(A = list(Z = Z, K = K))
 Please set names of list "Z" and "K"!}
 
 \item{LL0}{The log-likelihood for the null model.}
 
-\item{Gu}{n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.}
+\item{Gu}{\eqn{n \times n} matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.}
 
-\item{Ge}{n x n matrix. You should assign identity matrix I (diag(n)).}
+\item{Ge}{\eqn{n \times n} matrix. You should assign identity matrix I (diag(n)).}
 
-\item{P0}{n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+\item{P0}{\eqn{n \times n} matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
 \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.}
 
 \item{map}{Data frame of map information where the first column is the marker names,

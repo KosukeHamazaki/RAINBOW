@@ -2,10 +2,10 @@
 #'
 #' @description Perform spectral decomposition for \eqn{G = ZKZ'} or \eqn{SGS} where \eqn{S = I - X(X'X)^{-1}X}.
 #'
-#' @param ZETA A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param X \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param weights If the length of ZETA >= 2, you should assign the ratio of variance components to this argument.
 #' @param return.G If thie argument is TRUE, spectral decomposition results of G will be returned.
 #' (\eqn{G = ZKZ'})
@@ -224,12 +224,16 @@ spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TR
 #'
 #' @importFrom parallel mclapply
 #'
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
-#' @param ZETA A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -401,16 +405,24 @@ EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range 
 #' @description This function solves single-kernel linear mixed model by EMMA
 #'  (efficient mixed model association; Kang et al., 2008) approach.
 #'
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
-#' @param ZETA A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.SGS A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
@@ -568,16 +580,24 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
 #' where \eqn{\beta} is a vector of fixed effects and \eqn{u} is a vector of random effects with
 #' \eqn{Var[u] = K \sigma^2_u}.  The residual variance is \eqn{Var[\epsilon] = I \sigma^2_e}.
 #'
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
-#' @param ZETA A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.SGS A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
@@ -712,20 +732,28 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #'
 #' \eqn{y = X \beta + \sum _{l=1} ^ {L} Z _ {l} u _ {l} + \epsilon}
 #'
-#' where \eqn{Var[y] = \sum _{l=1} ^ {L} Z _ {l} K _ {l} Z _ {l}' \sigma _ {l} ^ 2 + I _ \sigma _ {e} ^ {2}}.
+#' where \eqn{Var[y] = \sum _{l=1} ^ {L} Z _ {l} K _ {l} Z _ {l}' \sigma _ {l} ^ 2 + I \sigma _ {e} ^ {2}}.
 #'
 #' @importFrom Matrix .bdiag
 #'
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X0 \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X0 \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param ZETA A list of variance matrices and its design matrices of random effects. You can use more than one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D)) (A for additive, D for dominance)
 #' Please set names of lists "Z" and "K"!
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.SGS A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.SGS A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
@@ -747,7 +775,7 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #' \item{$u}{BLUP(\eqn{u})}
 #' \item{$weights}{the proportion of each genetic variance (corresponding to each kernel of ZETA) to Vu}
 #' \item{$LL}{maximized log-likelihood (full or restricted, depending on method)}
-#' \item{$Vinv}{the inverse of \eqn{V = Vu x ZKZ' + Ve x I}}
+#' \item{$Vinv}{the inverse of \eqn{V = Vu \times ZKZ' + Ve \times I}}
 #' \item{$Hinv}{the inverse of \eqn{H = ZKZ' + \lambda I}}
 #' }
 #'
@@ -1034,16 +1062,16 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #'
 #' @importFrom Matrix .bdiag
 #'
-#' @param y0 \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param X0 \eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
-#' @param ZETA A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+#' @param y0 \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param X0 \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
+#' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param Zs0 A list of design matrices (Z; n x m matrix) for Ws.
+#' @param Zs0 A list of design matrices (Z; \eqn{n \times m} matrix) for Ws.
 #' For example, Zs0 = list(A.part = Z.A.part, D.part = Z.D.part)
-#' @param Ws0 A list of low rank matrices (W; m x k matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
+#' @param Ws0 A list of low rank matrices (W; \eqn{m \times k} matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
 #' For example, Ws0 = list(A.part = W.A, D.part = W.D)
-#' @param Gammas0 A list of matrices for weighting SNPs (Gamma; k x k matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
+#' @param Gammas0 A list of matrices for weighting SNPs (Gamma; \eqn{k \times k} matrix). This forms linear kernel \eqn{K = W \Gamma W'}.
 #' For example, if there is no weighting, Gammas0 = lapply(Ws0, function(x) diag(ncol(x)))
 #' @param gammas.diag If each Gamma is the diagonal matrix, please set this argument TRUE. The calculationtime can be saved.
 #' @param X.fix If you repeat this function and when X0 is fixed during iterations, please set this argument TRUE.
@@ -1052,7 +1080,11 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
-#' @param eigen.G A list with $values : eigen values and $vectors : eigen vectors.
+#' @param eigen.G A list with
+#' \describe{
+#' \item{$values}{eigen values}
+#' \item{$vectors}{eigen vectors}
+#' }
 #' The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
@@ -1074,7 +1106,7 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #' \item{$u}{BLUP(\eqn{u})}
 #' \item{$weights}{the proportion of each genetic variance (corresponding to each kernel of ZETA) to Vu}
 #' \item{$LL}{maximized log-likelihood (full or restricted, depending on method)}
-#' \item{$Vinv}{the inverse of \eqn{V = Vu x ZKZ' + Ve x I}}
+#' \item{$Vinv}{the inverse of \eqn{V = Vu \times ZKZ' + Ve \times I}}
 #' \item{$Hinv}{the inverse of \eqn{H = ZKZ' + \lambda I}}
 #' }
 #'
@@ -1276,11 +1308,11 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
 #' Calculte -log10(p) by score test (slow, for general cases)
 #'
 #'
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
 #' @param Gs A list of kernel matrices you want to test. For example, Gs = list(A.part = K.A.part, D.part = K.D.part)
-#' @param Gu n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
-#' @param Ge n x n matrix. You should assign identity matrix I (diag(n)).
-#' @param P0 n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+#' @param Gu \eqn{n \times n} matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
+#' @param Ge \eqn{n \times n} matrix. You should assign identity matrix I (diag(n)).
+#' @param P0 \eqn{n \times n} matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
 #' \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.
 #' @param chi0.mixture RAINBOW assumes the test statistic \eqn{l1' F l1} is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where l1 is the first derivative of the log-likelihood and F is the Fisher information. And r is the degree of freedom.
@@ -1311,15 +1343,15 @@ score.cpp <- function(y, Gs, Gu, Ge, P0, chi0.mixture = 0.5){
 #' Calculte -log10(p) by score test (fast, for limited cases)
 #'
 #'
-#' @param y \eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.
-#' @param Ws A list of low rank matrices (ZW; n x k matrix). This forms linear kernel \eqn{ZKZ' = ZW \Gamma (ZW)'}.
+#' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
+#' @param Ws A list of low rank matrices (ZW; \eqn{n \times k} matrix). This forms linear kernel \eqn{ZKZ' = ZW \Gamma (ZW)'}.
 #' For example, Ws = list(A.part = ZW.A, D.part = ZW.D)
-#' @param Gammas A list of matrices for weighting SNPs (Gamma; k x k matrix). This forms linear kernel \eqn{ZKZ' = ZW \Gamma (ZW)'}.
+#' @param Gammas A list of matrices for weighting SNPs (Gamma; \eqn{k \times k} matrix). This forms linear kernel \eqn{ZKZ' = ZW \Gamma (ZW)'}.
 #' For example, if there is no weighting, Gammas = lapply(Ws, function(x) diag(ncol(x)))
 #' @param gammas.diag If each Gamma is the diagonal matrix, please set this argument TRUE. The calculation time can be saved.
-#' @param Gu n x n matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
-#' @param Ge n x n matrix. You should assign identity matrix I (diag(n)).
-#' @param P0 n x n matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
+#' @param Gu \eqn{n \times n} matrix. You should assign \eqn{ZKZ'}, where K is covariance (relationship) matrix and Z is its design matrix.
+#' @param Ge \eqn{n \times n} matrix. You should assign identity matrix I (diag(n)).
+#' @param P0 \eqn{n \times n} matrix. The Moore-Penrose generalized inverse of \eqn{SV0S}, where \eqn{S = X(X'X)^{-1}X'} and
 #' \eqn{V0 = \sigma^2_u Gu + \sigma^2_e Ge}. \eqn{\sigma^2_u} and \eqn{\sigma^2_e} are estimators of the null model.
 #' @param chi0.mixture RAINBOW assumes the statistic \eqn{l1' F l1} follows the mixture of \eqn{\chi^2_0} and \eqn{\chi^2_r},
 #' where l1 is the first derivative of the log-likelihood and F is the Fisher information. And r is the degree of freedom.

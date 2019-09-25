@@ -9,20 +9,28 @@ EMM2.cpp(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL,
   return.Hinv = FALSE)
 }
 \arguments{
-\item{y}{\eqn{n x 1} vector. A vector of phenotypic values should be used. NA is allowed.}
+\item{y}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
 
-\item{X}{\eqn{n x p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
+\item{X}{\eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
 
-\item{ZETA}{A list of variance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects. You can use only one kernel matrix.
+\item{ZETA}{A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 For example, ZETA = list(A = list(Z = Z, K = K))
 Please set names of list "Z" and "K"!}
 
-\item{eigen.G}{A list with $values : eigen values and $vectors : eigen vectors.
+\item{eigen.G}{A list with
+\describe{
+\item{$values}{eigen values}
+\item{$vectors}{eigen vectors}
+}
 The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
 We recommend you assign the result of the eigen decomposition beforehand for time saving.}
 
-\item{eigen.SGS}{A list with $values : eigen values and $vectors : eigen vectors.
+\item{eigen.SGS}{A list with
+\describe{
+\item{$values}{eigen values}
+\item{$vectors}{eigen vectors}
+}
 The result of the eigen decompsition of \eqn{SGS}, where \eqn{S = I - X(X'X)^{-1}X'}, \eqn{G = ZKZ'}.
 You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.

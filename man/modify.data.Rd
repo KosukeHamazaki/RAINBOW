@@ -9,9 +9,9 @@ modify.data(pheno.mat, geno.mat, pheno.labels = NULL,
   return.GWAS.format = FALSE)
 }
 \arguments{
-\item{pheno.mat}{A n1 x p matrix of phenotype data. rownames(pheno.mat) should be genotype (line; accesion; variety) names.}
+\item{pheno.mat}{A \eqn{n _ 1 \times p} matrix of phenotype data. rownames(pheno.mat) should be genotype (line; accesion; variety) names.}
 
-\item{geno.mat}{A n2 x m matrix of marker genotype data. rownames(geno.mat) should be genotype (line; accesion; variety) names.}
+\item{geno.mat}{A \eqn{n _ 2 \times m} matrix of marker genotype data. rownames(geno.mat) should be genotype (line; accesion; variety) names.}
 
 \item{pheno.labels}{A vector of genotype (line; accesion; variety) names which correpond to phenotypic values.}
 

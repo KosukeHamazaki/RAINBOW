@@ -24,16 +24,6 @@ If candidate = NULL, QTNs were randomly sampled from sample.sets or x.}
 
 \item{x.par}{If you don't want to match the sampling population and the genotype data to QTN effects, then use this argument as the latter.}
 
-\item{ZETA}{A list of covariance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects.
-Please set names of list "Z" and "K"! You can use more than one kernel matrix.
-For example,
-\describe{
-ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
-\item{Z.A, Z.D}{Design matrix (n x m) for the random effects. So, in many cases, you can use the identity matrix.}
-\item{K.A, K.D}{Different kernels which express some relationships between lines.
-For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
-}}
-
 \item{x2}{genotype matrix to calculate additive relationship matrix when Z.ETA = NULL.
 If Z.ETA = NULL & x2 = NULL, A.mat(x) will be calculated as kernel matrix.}
 
@@ -83,7 +73,7 @@ This function generates pseudo phenotypic values according to the following form
 
 \deqn{y = X \beta + Z u + e}
 
-where effects of major genes are regarded as fixed effects \eqn{Generate pseudo phenotypic values\beta} and
+where effects of major genes are regarded as fixed effects \eqn{\beta} and
 polygenetic effects are regarded as random effects \eqn{u}.
 The variances of \eqn{u} and \eqn{e} are automatically determined by the heritability.
 }
