@@ -5,7 +5,7 @@ Version: 0.1.4
 Author: Kosuke Hamazaki and Hiroyoshi Iwata
 Maintainer: Kosuke Hamazaki <hamazaki@ut-biomet.org>
 Description: Users can test multiple SNPs simultaneously by kernel-based methods. Users can test not only additive effects but also dominance and epistatic effects.
-License: GPL-3
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports: Rcpp,
