@@ -20,6 +20,17 @@ RGWAS.normal(pheno, geno, ZETA = NULL, covariate = NULL,
 \item{geno}{Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
 Columns 4 and higher contain the marker scores for each line, coded as {-1, 0, 1} = {aa, Aa, AA}.}
 
+\item{ZETA}{A list of covariance (relationship) matrix (K: \eqn{m \times m}) and its design matrix (Z: \eqn{n \times m}) of random effects.
+Please set names of list "Z" and "K"! You can use more than one kernel matrix.
+For example,
+
+ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
+\describe{
+\item{Z.A, Z.D}{Design matrix (\eqn{n \times m}) for the random effects. So, in many cases, you can use the identity matrix.}
+\item{K.A, K.D}{Different kernels which express some relationships between lines.}
+}
+For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
+
 \item{covariate}{A \eqn{n \times 1} vector or a \eqn{n \times p _ 1} matrix. You can insert continuous values, such as other traits or genotype score for special markers.
 This argument is regarded as one of the fixed effects.}
 

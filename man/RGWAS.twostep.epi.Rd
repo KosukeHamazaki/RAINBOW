@@ -25,6 +25,17 @@ RGWAS.twostep.epi(pheno, geno, ZETA = NULL, covariate = NULL,
 \item{geno}{Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
 Columns 4 and higher contain the marker scores for each line, coded as {-1, 0, 1} = {aa, Aa, AA}.}
 
+\item{ZETA}{A list of covariance (relationship) matrix (K: \eqn{m \times m}) and its design matrix (Z: \eqn{n \times m}) of random effects.
+Please set names of list "Z" and "K"! You can use more than one kernel matrix.
+For example,
+
+ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
+\describe{
+\item{Z.A, Z.D}{Design matrix (\eqn{n \times m}) for the random effects. So, in many cases, you can use the identity matrix.}
+\item{K.A, K.D}{Different kernels which express some relationships between lines.}
+}
+For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
+
 \item{covariate}{A \eqn{n \times 1} vector or a \eqn{n \times p _ 1} matrix. You can insert continuous values, such as other traits or genotype score for special markers.
 This argument is regarded as one of the fixed effects.}
 
@@ -45,6 +56,8 @@ If a marker has a MAF less than min.MAF, it is assigned a zero score.}
 
 \item{epistasis.percent}{This argument determines how many SNPs are detected by normal GWAS.
 For example, when epistasis.percent = 0.1, SNPs whose value of -log10(p) is in the top 0.1 percent are chosen as candidate for checking epistasis.}
+
+\item{check.epi.max}{It takes a lot of time to check epistasis, so you can decide the maximum number of SNPs to check epistasis.}
 
 \item{your.check}{Because there are less SNPs that can be tested in epistasis than in kernel-based GWAS, you can select which SNPs you want to test.
 If you use this argument, please set the number where SNPs to be tested are located in your data (so not position).
@@ -134,8 +147,6 @@ When saveName = NULL, the plot is not saved.}
 \item{count}{When count is TRUE, you can know how far RGWAS has ended with percent display.}
 
 \item{time}{When time is TRUE, you can know how much time it took to perform RGWAS.}
-
-\item{check.size.epi.max}{It takes a lot of time to check epistasis, so you can decide the maximum number of SNPs to check epistasis.}
 }
 \value{
 \describe{

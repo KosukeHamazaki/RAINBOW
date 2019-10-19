@@ -5,6 +5,8 @@
 #' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
+#' @param ZWs A list of additional linear kernels other than genetic relationship matrix.
+#' We utilize this argument in RGWAS.multisnp function, so you can ignore this.
 #' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param weights If the length of ZETA >= 2, you should assign the ratio of variance components to this argument.
 #' @param return.G If thie argument is TRUE, spectral decomposition results of G will be returned.
@@ -21,10 +23,9 @@
 #'
 #' @return
 #' \describe{
-#' \item{$spectral.G}{The spectral decomposition results of G.
+#' \item{$spectral.G}{The spectral decomposition results of G.}
 #' \item{$U}{eigen vectors of G.}
 #' \item{$delta}{eigen values of G.}
-#' }
 #' \item{$spectral.SGS}{estimator for \eqn{\sigma^2_e}}
 #' \item{$Q}{eigen vectors of SGS.}
 #' \item{$theta}{eigen values of sGS.}
@@ -1169,6 +1170,9 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #' @param traceInside Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.
 #' @param n.thres If \eqn{n >= n.thres}, perform EMM1.cpp. Else perform EMM2.cpp.
 #' @param bounds Lower and upper bounds for weights.
+#' @param spectral.method The method of spectral decomposition.
+#' In this function, "eigen" : eigen decomposition and "cholesky" : cholesky and singular value decomposition are offered.
+#' If this argument is NULL, either method will be chosen accorsing to the dimension of Z and X.
 #' @param REML You can choose which method you will use, "REML" or "ML".
 #' If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "ML".
 #' @param pred If TRUE, the fitting values of y is returned.

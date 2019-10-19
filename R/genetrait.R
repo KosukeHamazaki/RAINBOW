@@ -18,19 +18,21 @@
 #' If candidate = NULL, QTNs were randomly sampled from sample.sets or x.
 #' @param pos n.mark x 1 vector. cumulative position (over chromosomes) of each marker.
 #' @param x.par If you don't want to match the sampling population and the genotype data to QTN effects, then use this argument as the latter.
-#' @param ZETA A list of covariance (relationship) matrix (K; m x m) and its design matrix (Z; n x m) of random effects.
+#' @param ZETA A list of covariance (relationship) matrix (K: \eqn{m \times m}) and its design matrix (Z: \eqn{n \times m}) of random effects.
 #' Please set names of list "Z" and "K"! You can use more than one kernel matrix.
 #' For example,
-#' \describe{
+#'
 #' ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
-#' \item{Z.A, Z.D}{Design matrix (n x m) for the random effects. So, in many cases, you can use the identity matrix.}
+#' \describe{
+#' \item{Z.A, Z.D}{Design matrix (\eqn{n \times m}) for the random effects. So, in many cases, you can use the identity matrix.}
 #' \item{K.A, K.D}{Different kernels which express some relationships between lines.}
-#' For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
 #' }
+#' For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.
 #' @param x2 genotype matrix to calculate additive relationship matrix when Z.ETA = NULL.
 #' If Z.ETA = NULL & x2 = NULL, A.mat(x) will be calculated as kernel matrix.
 #' @param num.qtn the number of QTNs
-#' @param weight The weights for each QTN by their standard deviations. Minus value is also allowed.
+#' @param weight The weights for each QTN by their standard deviations. Negative value is also allowed.
+#' @param qtn.effect Additive of dominance for each marker effect. This argument should be the same length as num.qtn.
 #' @param prop The proportion of effects of QTNs to polygenetic effects.
 #' @param polygene.weight If there are multiple kernels, this argument determines the weights of each kernel effect.
 #' @param polygene If polygene = FALSE, pseudo phenotypes with only QTN effects will be generated.
@@ -38,7 +40,7 @@
 #' @param h.correction If TRUE, this function will generate phenotypes to match the genomic heritability and "h2".
 #' @param seed If seed is not NULL, some fixed phenotypic values will be generated according to set.seed(seed)
 #' @param plot If TRUE, boxplot for generated phenotypic values will be drawn.
-#' @param saveName When drawing any plot, you can save plots in png format. In saveName, you should substitute the name you want to save.
+#' @param saveAt When drawing any plot, you can save plots in png format. In saveAt, you should substitute the name you want to save.
 #' When saveAt = NULL, the plot is not saved.
 #' @param subpop If there is subpopulation structure, you can draw boxpots divide by subpopulations.
 #' n.sample x n.subpop matrix. Please indicate the subpopulation information by (0, 1) for each element.

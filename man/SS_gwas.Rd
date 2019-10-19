@@ -33,6 +33,9 @@ to evaluate the inflation level of results. The default is 10.}
 
 \item{method.thres}{Method for detemining threshold of significance. "BH" and "Bonferroni are offered.}
 
+\item{inflator.plus}{If `the -log10(p) value for each marker` exceeds (`the inflation level` + `inflator.plus`),
+that marker is regarded as significant.}
+
 \item{LD_length}{SNPs within the extent of LD are regareded as one set. This LD_length determines the size of LD block,
 and 2 x LD_length (b.p.) will be the size of LD block.}
 

@@ -133,7 +133,7 @@ map <- MAF.cut.res$map
 K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
 
 ### Modify data
-modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = T)
+modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = TRUE)
 pheno.mat <- modify.res$pheno.modi
 ZETA <- modify.res$ZETA
 

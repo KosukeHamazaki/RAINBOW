@@ -13,6 +13,9 @@ spectralG.cpp(ZETA, ZWs = NULL, X = NULL, weights = 1,
 For example, ZETA = list(A = list(Z = Z, K = K))
 Please set names of list "Z" and "K"!}
 
+\item{ZWs}{A list of additional linear kernels other than genetic relationship matrix.
+We utilize this argument in RGWAS.multisnp function, so you can ignore this.}
+
 \item{X}{\eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.}
 
 \item{weights}{If the length of ZETA >= 2, you should assign the ratio of variance components to this argument.}
@@ -38,7 +41,6 @@ If tol is NULL, top 'n' eigen values will be effective.}
 \item{$spectral.G}{The spectral decomposition results of G.}
 \item{$U}{eigen vectors of G.}
 \item{$delta}{eigen values of G.}
-}
 \item{$spectral.SGS}{estimator for \eqn{\sigma^2_e}}
 \item{$Q}{eigen vectors of SGS.}
 \item{$theta}{eigen values of sGS.}

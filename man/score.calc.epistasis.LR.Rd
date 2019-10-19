@@ -77,10 +77,6 @@ When you use inbred lines, please set this argument FALSE.}
 If a marker has a MAF less than min.MAF, it is assigned a zero score.}
 
 \item{count}{When count is TRUE, you can know how far RGWAS has ended with percent display.}
-
-\item{LL0}{The log-likelihood for the null model.}
-
-\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 }
 \value{
 -log10(p) of epistatic effects for each SNP-set

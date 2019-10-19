@@ -2875,7 +2875,6 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 #' Please set names of list "Z" and "K"!
 #' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
 #' @param X.now \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
-#' @param LL0 The log-likelihood for the null model.
 #' @param eigen.SGS A list with
 #' \describe{
 #' \item{$values}{eigen values}
@@ -2907,7 +2906,6 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 #' More precisely, the number of SNPs will be 2 * window.size.half + 1.
 #' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
 #' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
-#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param chi0.mixture RAINBOW assumes the tdeviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where r is the degree of freedom.
 #' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.

@@ -3,15 +3,16 @@
 #' @param pheno Data frame where the first column is the line name (gid). The remaining columns should be a phenotype to test.
 #' @param geno Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
 #'        Columns 4 and higher contain the marker scores for each line, coded as {-1, 0, 1} = {aa, Aa, AA}.
-#' @param ZETA A list of covariance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects.
-#' Please set names of list "Z" and "K"! You can use more than one kernel matrix, but the computational cost gets greater when using more than one kernel.
+#' @param ZETA A list of covariance (relationship) matrix (K: \eqn{m \times m}) and its design matrix (Z: \eqn{n \times m}) of random effects.
+#' Please set names of list "Z" and "K"! You can use more than one kernel matrix.
 #' For example,
-#' \describe{
+#'
 #' ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
+#' \describe{
 #' \item{Z.A, Z.D}{Design matrix (\eqn{n \times m}) for the random effects. So, in many cases, you can use the identity matrix.}
 #' \item{K.A, K.D}{Different kernels which express some relationships between lines.}
-#' For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
 #' }
+#' For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.
 #' @param covariate A \eqn{n \times 1} vector or a \eqn{n \times p _ 1} matrix. You can insert continuous values, such as other traits or genotype score for special markers.
 #' This argument is regarded as one of the fixed effects.
 #' @param covariate.factor A \eqn{n \times p _ 2} dataframe. You should assign a factor vector for each column.
@@ -89,6 +90,8 @@
 #'  plot.col1[1] for odd chromosomes and plot.col1[2] for even chromosomes
 #' @param plot.col2 color of the manhattan plot. color changes with chromosome and it starts from plot.col2 + 1
 #' (so plot.col2 = 1 means color starts from red.)
+#' @param plot.col2 color of the points of manhattan plot which are added after the reestimation by SNP-set method.
+#' color changes with chromosome and it starts from plot.col2 + 1 (so plot.col2 = 1 means color starts from red.)
 #' @param plot.type  This argument determines the type of the manhattan plot. See the help page of "plot".
 #' @param plot.pch This argument determines the shape of the dot of the manhattan plot. See the help page of "plot".
 #' @param saveName When drawing any plot, you can save plots in png format. In saveName, you should substitute the name you want to save.

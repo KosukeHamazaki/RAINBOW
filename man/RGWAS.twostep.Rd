@@ -29,6 +29,17 @@ RGWAS.twostep(pheno, geno, ZETA = NULL, covariate = NULL,
 \item{geno}{Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
 Columns 4 and higher contain the marker scores for each line, coded as {-1, 0, 1} = {aa, Aa, AA}.}
 
+\item{ZETA}{A list of covariance (relationship) matrix (K: \eqn{m \times m}) and its design matrix (Z: \eqn{n \times m}) of random effects.
+Please set names of list "Z" and "K"! You can use more than one kernel matrix.
+For example,
+
+ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
+\describe{
+\item{Z.A, Z.D}{Design matrix (\eqn{n \times m}) for the random effects. So, in many cases, you can use the identity matrix.}
+\item{K.A, K.D}{Different kernels which express some relationships between lines.}
+}
+For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
+
 \item{covariate}{A \eqn{n \times 1} vector or a \eqn{n \times p _ 1} matrix. You can insert continuous values, such as other traits or genotype score for special markers.
 This argument is regarded as one of the fixed effects.}
 
@@ -170,6 +181,9 @@ When return.EMM.res or thres is TRUE, the results will be "list" class.}
 \item{count}{When count is TRUE, you can know how far RGWAS has ended with percent display.}
 
 \item{time}{When time is TRUE, you can know how much time it took to perform RGWAS.}
+
+\item{plot.col2}{color of the points of manhattan plot which are added after the reestimation by SNP-set method.
+color changes with chromosome and it starts from plot.col2 + 1 (so plot.col2 = 1 means color starts from red.)}
 }
 \value{
 \describe{

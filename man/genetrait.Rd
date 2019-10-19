@@ -24,12 +24,25 @@ If candidate = NULL, QTNs were randomly sampled from sample.sets or x.}
 
 \item{x.par}{If you don't want to match the sampling population and the genotype data to QTN effects, then use this argument as the latter.}
 
+\item{ZETA}{A list of covariance (relationship) matrix (K: \eqn{m \times m}) and its design matrix (Z: \eqn{n \times m}) of random effects.
+Please set names of list "Z" and "K"! You can use more than one kernel matrix.
+For example,
+
+ZETA = list(A = list(Z = Z.A, K = K.A), D = list(Z = Z.D, K = K.D))
+\describe{
+\item{Z.A, Z.D}{Design matrix (\eqn{n \times m}) for the random effects. So, in many cases, you can use the identity matrix.}
+\item{K.A, K.D}{Different kernels which express some relationships between lines.}
+}
+For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.}
+
 \item{x2}{genotype matrix to calculate additive relationship matrix when Z.ETA = NULL.
 If Z.ETA = NULL & x2 = NULL, A.mat(x) will be calculated as kernel matrix.}
 
 \item{num.qtn}{the number of QTNs}
 
-\item{weight}{The weights for each QTN by their standard deviations. Minus value is also allowed.}
+\item{weight}{The weights for each QTN by their standard deviations. Negative value is also allowed.}
+
+\item{qtn.effect}{Additive of dominance for each marker effect. This argument should be the same length as num.qtn.}
 
 \item{prop}{The proportion of effects of QTNs to polygenetic effects.}
 
@@ -45,6 +58,9 @@ If Z.ETA = NULL & x2 = NULL, A.mat(x) will be calculated as kernel matrix.}
 
 \item{plot}{If TRUE, boxplot for generated phenotypic values will be drawn.}
 
+\item{saveAt}{When drawing any plot, you can save plots in png format. In saveAt, you should substitute the name you want to save.
+When saveAt = NULL, the plot is not saved.}
+
 \item{subpop}{If there is subpopulation structure, you can draw boxpots divide by subpopulations.
 n.sample x n.subpop matrix. Please indicate the subpopulation information by (0, 1) for each element.
 (0 means that line doen't belong to that subpopulation, and 1 means that line belongs to that subpopulation)}
@@ -53,9 +69,6 @@ n.sample x n.subpop matrix. Please indicate the subpopulation information by (0,
 If TRUE, this function will return other information such as positions of candidate QTNs.}
 
 \item{seed.env}{If TRUE, this function will generate different environment effects every time.}
-
-\item{saveName}{When drawing any plot, you can save plots in png format. In saveName, you should substitute the name you want to save.
-When saveAt = NULL, the plot is not saved.}
 }
 \value{
 trait = trait, u = g.all2, e = e2, candidate = qtn.candidates, qtn.position = pos.qtns, heritability = true_h

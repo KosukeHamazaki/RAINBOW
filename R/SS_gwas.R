@@ -19,6 +19,8 @@
 #' @param cor.thres SNPs within the extent of LD are regareded as one set. This cor.thres also determines the size of LD block,
 #' and the region with square of correlation coefficients >= cor.thres is regareded as one LD block. More precisely, the regions
 #' which satisfies both LD_length and cor.thres condition is rearded as one LD block.
+#' @param inflator.plus If `the -log10(p) value for each marker` exceeds (`the inflation level` + `inflator.plus`),
+#' that marker is regarded as significant.
 #' @param window.size If you peform SNP-set analysis with slinding window, we can consider the effect of window size by this argument.
 #' @param saveName When drawing any plot, you can save plots in png format. In saveName, you should substitute the name you want to save.
 #' When saveName = NULL, the plot is not saved.
