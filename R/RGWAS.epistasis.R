@@ -44,6 +44,7 @@
 #' @param chi0.mixture RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where r is the degree of freedom.
 #' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param gene.set If you have information of gene (or haplotype block), you can use it to perform kernel-based GWAS.
 #'            You should assign your gene information to gene.set in the form of a "data.frame" (whose dimension is (the number of gene) x 2).
 #'            In the first column, you should assign the gene name. And in the second column, you should assign the names of each marker,
@@ -149,7 +150,7 @@
 RGWAS.epistasis <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.factor = NULL,
                             structure.matrix = NULL, n.PC = 0, min.MAF = 0.02, n.core = 1,
                             test.method = "LR", dominance.eff = TRUE, haplotype = TRUE, num.hap = NULL,
-                            window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
+                            window.size.half = 5, window.slide = 1, chi0.mixture = 0.5, optimizer = "nlminb",
                             gene.set = NULL, plot.epi.3d = TRUE, plot.epi.2d = TRUE,
                             main.epi.3d = NULL, main.epi.2d = NULL, saveName = NULL, verbose = FALSE,
                             count = TRUE, time = TRUE){
@@ -379,7 +380,7 @@ RGWAS.epistasis <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariat
                                               eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map,
                                               haplotype = haplotype, num.hap = num.hap, window.size.half = window.size.half,
                                               window.slide = window.slide, chi0.mixture = chi0.mixture,
-                                              gene.set = gene.set,  dominance.eff = dominance.eff,
+                                              gene.set = gene.set,  dominance.eff = dominance.eff, optimizer = optimizer,
                                               min.MAF = min.MAF, count = count)
       }else{
         scores.epi <- score.calc.epistasis.score(M.now = M.now, ZETA.now = ZETA.now, y = y,
@@ -395,7 +396,7 @@ RGWAS.epistasis <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariat
                                               eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map,
                                               haplotype = haplotype, num.hap = num.hap, window.size.half = window.size.half,
                                               window.slide = window.slide, chi0.mixture = chi0.mixture,
-                                              gene.set = gene.set,  dominance.eff = dominance.eff,
+                                              gene.set = gene.set,  dominance.eff = dominance.eff, optimizer = optimizer,
                                               min.MAF = min.MAF, count = count)
       }else{
         scores.epi <- score.calc.epistasis.score(M.now = M.now, ZETA.now = ZETA.now, y = y,

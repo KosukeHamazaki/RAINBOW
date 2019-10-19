@@ -11,8 +11,8 @@ RGWAS.normal(pheno, geno, ZETA = NULL, covariate = NULL,
   plot.method = 1, plot.col1 = c("dark blue", "cornflowerblue"),
   plot.col2 = 1, plot.type = "p", plot.pch = 16, saveName = NULL,
   main.qq = NULL, main.man = NULL, plot.add.last = FALSE,
-  return.EMM.res = FALSE, thres = TRUE, verbose = FALSE,
-  count = TRUE, time = TRUE)
+  return.EMM.res = FALSE, optimizer = "nlminb", thres = TRUE,
+  verbose = FALSE, count = TRUE, time = TRUE)
 }
 \arguments{
 \item{pheno}{Data frame where the first column is the line name (gid). The remaining columns should be a phenotype to test.}
@@ -73,6 +73,8 @@ When saveName = NULL, the plot is not saved.}
 However, you should also write "dev.off()" after adding something.}
 
 \item{return.EMM.res}{When return.EMM.res = TRUE, the results of equation of mixed models are included in the result of RGWAS.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{thres}{If thres = TRUE, the threshold of the manhattan plot is included in the result of RGWAS.
 When return.EMM.res or thres is TRUE, the results will be "list" class.}

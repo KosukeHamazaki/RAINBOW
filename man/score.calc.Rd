@@ -4,8 +4,9 @@
 \alias{score.calc}
 \title{Calculate -log10(p) for single-SNP GWAS}
 \usage{
-score.calc(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE, eigen.G = NULL,
-  min.MAF = 0.02, count = TRUE)
+score.calc(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
+  optimizer = "nlminb", eigen.G = NULL, min.MAF = 0.02,
+  count = TRUE)
 }
 \arguments{
 \item{M.now}{n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.}
@@ -22,6 +23,8 @@ Please set names of list "Z" and "K"!}
 
 \item{P3D}{When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 When P3D = FALSE, variance components are estimated by REML for each marker separately.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{eigen.G}{A list with
 \describe{

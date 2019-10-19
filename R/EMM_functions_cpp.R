@@ -378,7 +378,7 @@ EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range 
 
   if(all(counts[-1] == count.max)){
     if(!silent){
-      warning("Parameter estimation may not be accurate. Please reestimate with EMM2 function.")
+      warning("Parameter estimation may not be accurate. Please reestimate with EMM2.cpp function.")
     }
     reest <- 1
   }else{
@@ -432,6 +432,8 @@ EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range 
 #' @param tol The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 #' Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
 #' If tol is NULL, top 'n' eigen values will be effective.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
+#' @param traceInside Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.
 #' @param REML You can choose which method you will use, "REML" or "ML".
 #' If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "ML".
 #' @param SE If TRUE, standard errors are calculated.
@@ -454,12 +456,12 @@ EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range 
 #'
 #'
 #' @export
-EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = NULL,
-                     REML = TRUE, bounds = c(1e-09, 1e+09), SE = FALSE, return.Hinv = FALSE){
+EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = NULL, optimizer = "nlminb",
+                     traceInside = 0, REML = TRUE, bounds = c(1e-09, 1e+09), SE = FALSE, return.Hinv = FALSE){
 
   #### The start of EMM2 (EMMA-based) ####
   if(length(ZETA) != 1){
-    stop("If you want to solve multikernel mixed-model equation, you should use EMM function.")
+    stop("If you want to solve multikernel mixed-model equation, you should use EM3.cpp function.")
   }
 
   pi <- 3.14159
@@ -517,45 +519,88 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
   omega <- crossprod(Q, y)
   omega.sq <- omega ^ 2
 
-  lambda.0 <- 0
+  lambda.0 <- 1
   n <- nrow(X)
   p <- ncol(X)
   phi <- delta
-
+  traceNo <- ifelse(traceInside > 0, 3, 0)
+  traceREPORT <- ifelse(traceInside > 0, traceInside, 1)
 
   if (!REML) {
     f.ML <- function(lambda, n, theta, omega.sq, phi) {
       n * log(sum(omega.sq / (theta + lambda))) + sum(log(phi +
                                                             lambda))
     }
-    gr.ML <- function(lambda, n, theta, omega.sq, phi) {
-      n * sum(omega.sq / (theta + lambda) ^ 2) / sum(omega.sq / (theta + lambda)) -
-        sum(1 / (phi + lambda))
+    # gr.ML <- function(lambda, n, theta, omega.sq, phi) {
+    #   n * sum(omega.sq / (theta + lambda) ^ 2) / sum(omega.sq / (theta + lambda)) -
+    #     sum(1 / (phi + lambda))
+    # }
+
+    if (optimizer == "optim") {
+      soln <- optimize(f.ML, interval = bounds, n, theta,
+                       omega.sq, phi)
+      lambda.opt <- soln$minimum
+      maxval <- soln$objective
+    } else if (optimizer == "optimx") {
+      soln <- optimx::optimx(par = lambda.0, fn = f.ML, gr = NULL, hess = NULL,
+                             lower = bounds[1], upper = bounds[2],
+                             method = "L-BFGS-B", n = n, theta = theta,
+                             omega.sq = omega.sq, phi = phi,
+                             control = list(trace = traceNo, starttests = FALSE, maximize = F,
+                                            REPORT = traceREPORT, kkt = FALSE))
+      lambda.opt <- soln[, 1]
+      maxval <- soln[, 2]
+    } else if (optimizer == "nlminb") {
+      soln <- nlminb(start = lambda.0, objective = f.ML, gradient = NULL, hessian = NULL,
+                     lower = bounds[1], upper = bounds[2], n = n, theta = theta,
+                     omega.sq = omega.sq, phi = phi, control = list(trace = traceInside))
+      lambda.opt <- soln$par
+      maxval <- soln$objective
+    } else {
+      warnings("We offer 'optim', 'optimx', and 'nlminb' as optimzers. Here we use 'optim' instead.")
+      soln <- optimize(f.ML, interval = bounds, n, theta,
+                       omega.sq, phi)
+      lambda.opt <- soln$minimum
+      maxval <- soln$objective
     }
 
-    soln <- optimize(f.ML, interval = bounds, n, theta,
-                     omega.sq, phi)
-    lambda.opt <- soln$minimum
-    maxval <- soln$objective
     df <- n
   } else {
     f.REML <- function(lambda, n.p, theta, omega.sq) {
       n.p * log(sum(omega.sq / (theta + lambda))) + sum(log(theta + lambda))
     }
-    gr.REML <- function(lambda, n.p, theta, omega.sq) {
-      n.p * sum(omega.sq / (theta + lambda) ^ 2) / sum(omega.sq / (theta + lambda)) -
-        sum(1 / (theta + lambda))
-    }
-    # soln <- optimx::optimx(par = lambda.0, fn = f.REML, gr = gr.REML, hess = NULL,
-    #                        lower = bounds[1], upper = bounds[2],
-    #                        method = "L-BFGS-B", n.p = n - p, theta = theta,
-    #                        omega.sq = omega.sq, control = list(starttests = FALSE))
-    # lambda.opt <- soln[, 1]
+    # gr.REML <- function(lambda, n.p, theta, omega.sq) {
+    #   n.p * sum(omega.sq / (theta + lambda) ^ 2) / sum(omega.sq / (theta + lambda)) -
+    #     sum(1 / (theta + lambda))
+    # }
 
-    soln <- optimize(f.REML, interval = bounds, n - p, theta,
-                     omega.sq)
-    lambda.opt <- soln$minimum
-    maxval <- soln$objective
+    if (optimizer == "optim") {
+      soln <- optimize(f.REML, interval = bounds, n - p, theta,
+                       omega.sq)
+      lambda.opt <- soln$minimum
+      maxval <- soln$objective
+    } else if (optimizer == "optimx") {
+      soln <- optimx::optimx(par = lambda.0, fn = f.REML, gr = NULL, hess = NULL,
+                             lower = bounds[1], upper = bounds[2],
+                             method = "L-BFGS-B", n.p = n - p, theta = theta,
+                             omega.sq = omega.sq, control = list(trace = traceNo, starttests = FALSE,
+                                                                 maximize = F, REPORT = traceREPORT, kkt = FALSE))
+      lambda.opt <- soln[, 1]
+      maxval <- soln[, 2]
+    } else if (optimizer == "nlminb") {
+      soln <- nlminb(start = lambda.0, objective = f.REML, gradient = NULL, hessian = NULL,
+                     lower = bounds[1], upper = bounds[2], n.p = n - p, theta = theta,
+                     omega.sq = omega.sq, control = list(trace = traceInside))
+      lambda.opt <- soln$par
+      maxval <- soln$objective
+    } else {
+      warning("We offer 'optim', 'optimx', and 'nlminb' as optimzers. Here we use 'optim' instead.")
+      soln <- optimize(f.REML, interval = bounds, n - p, theta,
+                       omega.sq)
+      lambda.opt <- soln$minimum
+      maxval <- soln$objective
+    }
+
     df <- n - p
   }
 
@@ -619,6 +664,8 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
 #' @param tol The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 #' Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
 #' If tol is NULL, top 'n' eigen values will be effective.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
+#' @param traceInside Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.
 #' @param REML You can choose which method you will use, "REML" or "ML".
 #' If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "ML".
 #' @param silent If this argument is TRUE, warning messages will be shown when estimation is not accurate.
@@ -679,7 +726,7 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
 #' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
 #'
 #' ### Modify data
-#' modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = T)
+#' modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = TRUE)
 #' pheno.mat <- modify.res$pheno.modi
 #' ZETA <- modify.res$ZETA
 #'
@@ -699,7 +746,7 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
 #'
 EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres = 450, reestimation = FALSE,
                     lam.len = 4, init.range = c(1e-06, 1e02), init.one = 0.5, conv.param = 1e-06,
-                    count.max = 20, bounds = c(1e-06, 1e06), tol = NULL, REML = TRUE,
+                    count.max = 20, bounds = c(1e-06, 1e06), tol = NULL, optimizer = "nlminb", traceInside = 0, REML = TRUE,
                     silent = TRUE, plot.l = FALSE, SE = FALSE, return.Hinv = TRUE){
   n <- length(y)
 
@@ -711,12 +758,12 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 
     if((res$reest == 1) & reestimation){
       res <- EMM2.cpp(y = y, X = X, ZETA = ZETA, eigen.G = eigen.G, eigen.SGS = eigen.SGS, REML = REML,
-                      tol = tol, bounds = bounds, SE = SE, return.Hinv = return.Hinv)
+                      optimizer = optimizer, traceInside = traceInside, tol = tol, bounds = bounds, SE = SE, return.Hinv = return.Hinv)
     }
 
   }else{
     res <- EMM2.cpp(y = y, X = X, ZETA = ZETA, eigen.G = eigen.G, eigen.SGS = eigen.SGS, REML = REML,
-                    bounds = bounds, SE = SE, return.Hinv = return.Hinv, tol = tol)
+                    optimizer = optimizer, traceInside = traceInside, bounds = bounds, SE = SE, return.Hinv = return.Hinv, tol = tol)
   }
 
   return(res)
@@ -758,6 +805,8 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #' You can use "spectralG.cpp" function in RAINBOW.
 #' If this argument is NULL, the eigen decomposition will be performed in this function.
 #' We recommend you assign the result of the eigen decomposition beforehand for time saving.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
+#' @param traceInside Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.
 #' @param n.thres If \eqn{n >= n.thres}, perform EMM1.cpp. Else perform EMM2.cpp.
 #' @param tol The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 #' Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
@@ -837,7 +886,7 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #' @export
 #'
 EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = NULL,
-                     n.thres = 450, REML = TRUE, pred = TRUE){
+                     optimizer = "nlminb", traceInside = 0, n.thres = 450, REML = TRUE, pred = TRUE){
   n <- length(as.matrix(y))
   y <- matrix(y, n, 1)
 
@@ -922,8 +971,34 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
         optimout <- optimize(minimfunc, lower = 0, upper = 10000)
         return(optimout$objective)
       }
-      weights <- optim(par = rep(1 / lz, lz), fn = minimfunctionouter,
-                       method = "L-BFGS-B", lower = rep(0, lz), upper = rep(1, lz))$par
+
+
+      parInit <- rep(1 / lz, lz)
+      parLower <- rep(0, lz)
+      parUpper <- rep(1, lz)
+      traceNo <- ifelse(traceInside > 0, 3, 0)
+      traceREPORT <- ifelse(traceInside > 0, traceInside, 1)
+
+      if (optimizer == "optim") {
+        soln <- optim(par = parInit, fn = minimfunctionouter, control = list(trace = traceNo, REPORT = traceREPORT),
+                      method = "L-BFGS-B", lower = parLower, upper = parUpper)
+        weights <- soln$par
+      } else if (optimizer == "optimx") {
+        soln <- optimx::optimx(par = parInit, fn = minimfunctionouter, gr = NULL, hess = NULL,
+                               lower = parLower, upper = parUpper, method = "L-BFGS-B", hessian = FALSE,
+                               control = list(trace = traceNo, starttests = FALSE, maximize = F, REPORT = traceREPORT, kkt = FALSE))
+        weights <- as.matrix(soln)[1, 1:lz]
+      } else if (optimizer == "nlminb") {
+        soln <- nlminb(start = parInit, objective = minimfunctionouter, gradient = NULL, hessian = NULL,
+                       lower = parLower, upper = parUpper, control = list(trace = traceInside))
+        weights <- soln$par
+      } else {
+        warning("We offer 'optim', 'optimx', and 'nlminb' as optimzers. Here we use 'optim' instead.")
+        soln <- optim(par = parInit, fn = minimfunctionouter, control = list(trace = traceNo, REPORT = traceREPORT),
+                      method = "L-BFGS-B", lower = parLower, upper = parUpper)
+        weights <- soln$par
+      }
+
     }
   }
 
@@ -996,11 +1071,11 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 
   if(lz >= 2){
     ZETA.list <- list(A = list(Z = diag(n), K = ZKZt))
-    EMM.cpp.res <- EMM.cpp(y, X = X, ZETA = ZETA.list, eigen.G = eigen.G, eigen.SGS = eigen.SGS,
-                           tol = tol, n.thres = n.thres, return.Hinv = TRUE, REML = REML)
+    EMM.cpp.res <- EMM.cpp(y, X = X, ZETA = ZETA.list, eigen.G = eigen.G, eigen.SGS = eigen.SGS, traceInside = traceInside,
+                           optimizer = optimizer, tol = tol, n.thres = n.thres, return.Hinv = TRUE, REML = REML)
   }else{
-    EMM.cpp.res <- EMM.cpp(y, X = X, ZETA = lapply(ZETA, function(x) list(Z = x$Z[not.NA, , drop = FALSE], K = x$K)),
-                           eigen.G = eigen.G, eigen.SGS = eigen.SGS, tol = tol, n.thres = n.thres, return.Hinv = TRUE, REML = REML)
+    EMM.cpp.res <- EMM.cpp(y, X = X, ZETA = lapply(ZETA, function(x) list(Z = x$Z[not.NA, , drop = FALSE], K = x$K)), traceInside = traceInside,
+                           optimizer = optimizer, eigen.G = eigen.G, eigen.SGS = eigen.SGS, tol = tol, n.thres = n.thres, return.Hinv = TRUE, REML = REML)
   }
 
 
@@ -1018,11 +1093,10 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
   Vinv <- (1 / Ve) * Hinv
   namesu <- c()
   for (i in 1:length(Klist)) {
-    namesu <- c(namesu, paste(paste("K", i, sep = "_"),
-                              colnames(ZETA[[i]]$K), sep = ""))
+    namesu <- c(namesu, paste("K", i, colnames(ZETA[[i]]$K), sep = "_"))
   }
 
-  names(u) <- namesu
+  rownames(u) <- namesu
   if(!pred){
     return(list(y.pred = NULL, Vu = Vu, Ve = Ve, beta = beta,
                 u = u, weights = weights, LL = LL, Vinv = Vinv, Hinv = Hinv))
@@ -1091,6 +1165,8 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #' @param tol The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 #' Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
 #' If tol is NULL, top 'n' eigen values will be effective.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
+#' @param traceInside Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.
 #' @param n.thres If \eqn{n >= n.thres}, perform EMM1.cpp. Else perform EMM2.cpp.
 #' @param bounds Lower and upper bounds for weights.
 #' @param REML You can choose which method you will use, "REML" or "ML".
@@ -1119,13 +1195,69 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #' Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based
 #'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
+#'
+#' @examples
+#' ### Import RAINBOW
+#' require(RAINBOW)
+#'
+#' ### Load example datasets
+#' data("Rice_Zhao_etal")
+#'
+#' ### View each dataset
+#' See(Rice_geno_score)
+#' See(Rice_geno_map)
+#' See(Rice_pheno)
+#'
+#' ### Select one trait for example
+#' trait.name <- "Flowering.time.at.Arkansas"
+#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+#'
+#' ### Remove SNPs whose MAF <= 0.05
+#' x.0 <- t(Rice_geno_score)
+#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
+#' x <- MAF.cut.res$x
+#' map <- MAF.cut.res$map
+#'
+#'
+#' ### Estimate additive genetic relationship matrix
+#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
+#'
+#'
+#' ### Modify data
+#' Z <- design.Z(pheno.labels = rownames(y),
+#'               geno.names = rownames(K.A))  ### design matrix for random effects
+#' pheno.mat <- y[rownames(Z), , drop = FALSE]
+#' ZETA <- list(A = list(Z = Z, K = K.A))
+#'
+#'
+#' ### Including the additional linear kernel for chromosome 12
+#' chrNo <- 12
+#' W.A <- x[, map$chr == chrNo]    ### marker genotype data of chromosome 12
+#'
+#' Zs0 <- list(A.part = Z)
+#' Ws0 <- list(A.part = W.A)       ### This will be regarded as linear kernel
+#' ### for the variance-covariance matrix of another random effects.
+#'
+#'
+#' ### Solve multi-kernel linear mixed effects model (2 random efects)
+#' EM3.linker.res <- EM3.linker.cpp(y0 = pheno.mat, X0 = NULL, ZETA = ZETA,
+#'                                  Zs0 = Zs0, Ws0 = Ws0)
+#' (Vu <- EM3.linker.res$Vu)   ### estimated genetic variance
+#' (Ve <- EM3.linker.res$Ve)   ### estimated residual variance
+#' (weights <- EM3.linker.res$weights)   ### estimated proportion of two genetic variances
+#' (herit <- Vu * weights / (Vu + Ve))   ### genomic heritability (additive (all chromosomes), additive (chromosome 12))
+#'
+#' (beta <- EM3.linker.res$beta)   ### Here, this is an intercept.
+#' u <- EM3.linker.res$u   ### estimated genotypic values (additive (all chromosomes), additive (chromosome 12))
+#' See(u)
+#'
 #' @export
 #'
 EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
                             Gammas0 = lapply(Ws0, function(x) diag(ncol(x))), gammas.diag = TRUE,
                             X.fix = TRUE, eigen.SGS = NULL, eigen.G = NULL, tol = NULL,
-                            bounds = c(1e-06, 1e06), n.thres = 450, spectral.method = NULL,
-                            REML = TRUE, pred = TRUE){
+                            bounds = c(1e-06, 1e06), optimizer = "nlminb", traceInside = 0,
+                            n.thres = 450, spectral.method = NULL, REML = TRUE, pred = TRUE){
   n0 <- length(as.matrix(y0))
   y0 <- matrix(y0, n0, 1)
 
@@ -1153,6 +1285,8 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
   y <- y0[not.NA]
   X <- X0[not.NA, , drop = FALSE]
   Z <- Z0[not.NA, , drop = FALSE]
+
+  ZETA <- list(A = list(Z = Z, K = K))
 
   if(is.null(Zs0)){
     Zs0 <- lapply(Ws0, function(x) diag(nrow(x)))
@@ -1182,7 +1316,7 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
 
   if((!X.fix) | (is.null(eigen.SGS))){
     eigen.SGS <- spectralG.cpp(ZETA = ZETA, X = X, return.G = FALSE,
-                               return.SGS = FALSE, tol = tol, df.H = NULL)[[2]]
+                               return.SGS = TRUE, tol = tol, df.H = NULL)[[2]]
   }
   U2 <- eigen.SGS$Q
   delta2 <- eigen.SGS$theta
@@ -1192,7 +1326,7 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
   weights <- rep(1 / n.param, n.param + 1)
   weights[2:(n.param + 1)] <- weights[2:(n.param + 1)] / sum(weights[2:(n.param + 1)])
 
-  maxfuncouter <- function(weights){
+  minimumfunctionouter <- function(weights){
     weights[2:(n.param + 1)] <- weights[2:(n.param + 1)] / sum(weights[2:(n.param + 1)])
 
     lambda <- weights[1] / weights[2]
@@ -1218,14 +1352,37 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
 
       LL <- llik_ML(n, yPy, lnHinv)
     }
-    return(LL)
+
+    obj <- -LL
+    return(obj)
   }
 
 
-  params.res <- optim(par = rep(1 / n.param, n.param + 1), fn = maxfuncouter, control = list(fnscale = -1),
-                      method = "L-BFGS-B", lower = rep(bounds[1], n.param),
-                      upper = c(bounds[2], rep(1, n.param)))
-  weights <- params.res$par[-1]
+  parInit <- rep(1 / n.param, n.param + 1)
+  parLower <- rep(bounds[1], n.param + 1)
+  parUpper <- c(bounds[2], rep(1, n.param))
+  traceNo <- ifelse(traceInside > 0, 3, 0)
+  traceREPORT <- ifelse(traceInside > 0, traceInside, 1)
+
+  if (optimizer == "optim") {
+    soln <- optim(par = parInit, fn = minimumfunctionouter, control = list(trace = traceNo, REPORT = traceREPORT),
+                  method = "L-BFGS-B", lower = parLower, upper = parUpper)
+    weights <- soln$par[-1]
+  } else if (optimizer == "optimx") {
+    soln <- optimx::optimx(par = parInit, fn = minimumfunctionouter, gr = NULL, hess = NULL,
+                           lower = parLower, upper = parUpper, method = "L-BFGS-B", hessian = FALSE,
+                           control = list(trace = traceNo, starttests = FALSE, maximize = F, REPORT = traceREPORT, kkt = FALSE))
+    weights <- as.matrix(soln)[1, 2:(n.param + 1)]
+  } else if (optimizer == "nlminb") {
+    soln <- nlminb(start = parInit, objective = minimumfunctionouter, gradient = NULL, hessian = NULL,
+                   lower = parLower, upper = parUpper, control = list(trace = traceInside))
+    weights <- soln$par[-1]
+  } else {
+    warning("We offer 'optim', 'optimx', and 'nlminb' as optimzers. Here we use 'optim' instead.")
+    soln <- optim(par = parInit, fn = minimumfunctionouter, control = list(trace = traceNo, REPORT = traceREPORT),
+                  method = "L-BFGS-B", lower = parLower, upper = parUpper)
+    weights <- soln$par[-1]
+  }
 
 
   Zs.all.list <- c(list(K.A = Z), Zs)
@@ -1268,7 +1425,7 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
   eigen.SGS.all <- spectralG.all[[2]]
 
   EMM.cpp.res <- EMM.cpp(y, X = X, ZETA = ZETA.list, eigen.G = eigen.G.all, eigen.SGS = eigen.SGS.all,
-                         n.thres = n.thres, return.Hinv = TRUE, REML = REML, tol = tol)
+                         optimizer = optimizer, traceInside = traceInside, n.thres = n.thres, return.Hinv = TRUE, REML = REML, tol = tol)
 
   Vu <- EMM.cpp.res$Vu
   Ve <- EMM.cpp.res$Ve
@@ -1283,11 +1440,10 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
   Vinv <- (1 / Ve) * Hinv
   namesu <- c()
   for (i in 1:length(Klist)) {
-    namesu <- c(namesu, paste(paste("K", i, sep = "_"),
-                              colnames(Klist[[i]]), sep = ""))
+    namesu <- c(namesu, paste("K", i, colnames(Klist[[i]]), sep = "_"))
   }
 
-  names(u) <- namesu
+  rownames(u) <- namesu
   if(!pred){
     return(list(y.pred = NULL, Vu = Vu, Ve = Ve, beta = beta,
                 u = u, weights = weights, LL = LL, Vinv = Vinv, Hinv = Hinv))

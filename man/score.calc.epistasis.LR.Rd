@@ -5,10 +5,10 @@
 \title{Calculate -log10(p) of epistatic effects by LR test}
 \usage{
 score.calc.epistasis.LR(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
-  eigen.G = NULL, map, haplotype = TRUE, num.hap = NULL,
-  window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
-  gene.set = NULL, dominance.eff = TRUE, min.MAF = 0.02,
-  count = TRUE)
+  eigen.G = NULL, optimizer = "nlminb", map, haplotype = TRUE,
+  num.hap = NULL, window.size.half = 5, window.slide = 1,
+  chi0.mixture = 0.5, gene.set = NULL, dominance.eff = TRUE,
+  min.MAF = 0.02, count = TRUE)
 }
 \arguments{
 \item{M.now}{n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.}
@@ -39,6 +39,8 @@ We recommend you assign the result of the eigen decomposition beforehand for tim
 The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
 We recommend you assign the result of the eigen decomposition beforehand for time saving.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{map}{Data frame of map information where the first column is the marker names,
 the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.}
@@ -77,6 +79,8 @@ If a marker has a MAF less than min.MAF, it is assigned a zero score.}
 \item{count}{When count is TRUE, you can know how far RGWAS has ended with percent display.}
 
 \item{LL0}{The log-likelihood for the null model.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 }
 \value{
 -log10(p) of epistatic effects for each SNP-set

@@ -103,6 +103,7 @@
 #' @param main.man The title of manhattan plot. If this argument is NULL, trait name is set as the title.
 #' @param plot.add.last If saveName is not NULL and this argument is TRUE, then you can add lines or dots to manhattan plots.
 #' However, you should also write "dev.off()" after adding something.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param return.EMM.res When return.EMM.res = TRUE, the results of equation of mixed models are included in the result of RGWAS.
 #' @param thres If thres = TRUE, the threshold of the manhattan plot is included in the result of RGWAS.
 #' When return.EMM.res or thres is TRUE, the results will be "list" class.
@@ -220,7 +221,7 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
                            sig.level = 0.05, method.thres = "BH", plot.qq = TRUE, plot.Manhattan = TRUE, plot.method = 1,
                            plot.col1 = c("dark blue", "cornflowerblue"), plot.col2 = 1,
                            plot.type = "p", plot.pch = 16, saveName = NULL, main.qq = NULL,
-                           main.man = NULL, plot.add.last = FALSE, return.EMM.res = FALSE,
+                           main.man = NULL, plot.add.last = FALSE, return.EMM.res = FALSE, optimizer = "nlminb",
                            thres = TRUE, verbose = FALSE, count = TRUE, time = TRUE){
 
   #### The start of the RGWAS function ####
@@ -461,7 +462,7 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
                                      eigen.SGS = eigen.SGS, eigen.G = eigen.G, n.core = n.core, map = map,
                                      kernel.method = kernel.method, kernel.h = kernel.h, haplotype = haplotype,
                                      num.hap = num.hap, test.effect = test.effect, window.size.half = window.size.half,
-                                     window.slide = window.slide, chi0.mixture = chi0.mixture,
+                                     window.slide = window.slide, chi0.mixture = chi0.mixture, optimizer = optimizer,
                                      weighting.center = weighting.center, weighting.other = weighting.other,
                                      gene.set = gene.set, min.MAF = min.MAF, count = count)
         }else{
@@ -476,7 +477,7 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
     }else {
       if(test.method == "LR"){
         scores <- score.calc.LR(M.now = M.now, y = y, X.now = X.now, ZETA.now = ZETA.now, LL0 = LL0,
-                                eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map,
+                                eigen.SGS = eigen.SGS, eigen.G = eigen.G, map = map, optimizer = optimizer,
                                 kernel.method = kernel.method, kernel.h = kernel.h, haplotype = haplotype,
                                 num.hap = num.hap, test.effect = test.effect, window.size.half = window.size.half,
                                 window.slide = window.slide, chi0.mixture = chi0.mixture,

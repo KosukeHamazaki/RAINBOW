@@ -8,8 +8,8 @@ EMM.cpp(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL,
   n.thres = 450, reestimation = FALSE, lam.len = 4,
   init.range = c(1e-06, 100), init.one = 0.5, conv.param = 1e-06,
   count.max = 20, bounds = c(1e-06, 1e+06), tol = NULL,
-  REML = TRUE, silent = TRUE, plot.l = FALSE, SE = FALSE,
-  return.Hinv = TRUE)
+  optimizer = "nlminb", traceInside = 0, REML = TRUE,
+  silent = TRUE, plot.l = FALSE, SE = FALSE, return.Hinv = TRUE)
 }
 \arguments{
 \item{y}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
@@ -64,6 +64,10 @@ the parameter is reset to the value in this range.}
 \item{tol}{The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
 If tol is NULL, top 'n' eigen values will be effective.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
+
+\item{traceInside}{Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.}
 
 \item{REML}{You can choose which method you will use, "REML" or "ML".
 If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "ML".}

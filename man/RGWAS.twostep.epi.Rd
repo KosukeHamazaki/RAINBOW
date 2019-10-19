@@ -10,14 +10,14 @@ RGWAS.twostep.epi(pheno, geno, ZETA = NULL, covariate = NULL,
   epistasis.percent = 0.05, check.epi.max = 200, your.check = NULL,
   GWAS.res.first = NULL, P3D = TRUE, test.method = "LR",
   dominance.eff = TRUE, haplotype = TRUE, num.hap = NULL,
-  window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
-  gene.set = NULL, sig.level = 0.05, method.thres = "BH",
-  plot.qq.1 = TRUE, plot.Manhattan.1 = TRUE, plot.epi.3d = TRUE,
-  plot.epi.2d = TRUE, plot.method = 1, plot.col1 = c("dark blue",
-  "cornflowerblue"), plot.col2 = 1, plot.type = "p", plot.pch = 16,
-  saveName = NULL, main.qq.1 = NULL, main.man.1 = NULL,
-  main.epi.3d = NULL, main.epi.2d = NULL, verbose = FALSE,
-  count = TRUE, time = TRUE)
+  optimizer = "nlminb", window.size.half = 5, window.slide = 1,
+  chi0.mixture = 0.5, gene.set = NULL, sig.level = 0.05,
+  method.thres = "BH", plot.qq.1 = TRUE, plot.Manhattan.1 = TRUE,
+  plot.epi.3d = TRUE, plot.epi.2d = TRUE, plot.method = 1,
+  plot.col1 = c("dark blue", "cornflowerblue"), plot.col2 = 1,
+  plot.type = "p", plot.pch = 16, saveName = NULL,
+  main.qq.1 = NULL, main.man.1 = NULL, main.epi.3d = NULL,
+  main.epi.2d = NULL, verbose = FALSE, count = TRUE, time = TRUE)
 }
 \arguments{
 \item{pheno}{Data frame where the first column is the line name (gid). The remaining columns should be a phenotype to test.}
@@ -73,6 +73,8 @@ The result won't be changed, but the time for the calculation will be shorter.}
 \item{num.hap}{When haplotype = TRUE, you can set the number of haplotypes which you expect.
 Then similar arrays are considered as the same haplotype, and then make kernel(K.SNP) whose dimension is num.hap x num.hap.
 When num.hap = NULL (default), num.hap will be set as the maximum number which reflects the difference between lines.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{window.size.half}{This argument decides how many SNPs (around the SNP you want to test) are used to calculated K.SNP.
 More precisely, the number of SNPs will be 2 * window.size.half + 1.}

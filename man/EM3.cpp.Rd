@@ -5,7 +5,8 @@
 \title{Equation of mixed model for multi-kernel (slow, general version)}
 \usage{
 EM3.cpp(y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL,
-  tol = NULL, n.thres = 450, REML = TRUE, pred = TRUE)
+  tol = NULL, optimizer = "nlminb", traceInside = 0, n.thres = 450,
+  REML = TRUE, pred = TRUE)
 }
 \arguments{
 \item{y}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
@@ -38,6 +39,10 @@ We recommend you assign the result of the eigen decomposition beforehand for tim
 \item{tol}{The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
 If tol is NULL, top 'n' eigen values will be effective.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
+
+\item{traceInside}{Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.}
 
 \item{n.thres}{If \eqn{n >= n.thres}, perform EMM1.cpp. Else perform EMM2.cpp.}
 

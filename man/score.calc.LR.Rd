@@ -5,11 +5,12 @@
 \title{Calculate -log10(p) of each SNP-set by the LR test}
 \usage{
 score.calc.LR(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL,
-  eigen.G = NULL, map, kernel.method = "linear", kernel.h = "tuned",
-  haplotype = TRUE, num.hap = NULL, test.effect = "additive",
-  window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
-  weighting.center = TRUE, weighting.other = NULL, gene.set = NULL,
-  min.MAF = 0.02, count = TRUE)
+  eigen.G = NULL, optimizer = "nlminb", map,
+  kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE,
+  num.hap = NULL, test.effect = "additive", window.size.half = 5,
+  window.slide = 1, chi0.mixture = 0.5, weighting.center = TRUE,
+  weighting.other = NULL, gene.set = NULL, min.MAF = 0.02,
+  count = TRUE)
 }
 \arguments{
 \item{M.now}{n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.}
@@ -42,6 +43,8 @@ We recommend you assign the result of the eigen decomposition beforehand for tim
 The result of the eigen decompsition of \eqn{G = ZKZ'}. You can use "spectralG.cpp" function in RAINBOW.
 If this argument is NULL, the eigen decomposition will be performed in this function.
 We recommend you assign the result of the eigen decomposition beforehand for time saving.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{map}{Data frame of map information where the first column is the marker names,
 the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.}

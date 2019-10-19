@@ -35,7 +35,7 @@ If tol is NULL, top 'n' eigen values will be effective.}
 }
 \value{
 \describe{
-\item{$spectral.G}{The spectral decomposition results of G.
+\item{$spectral.G}{The spectral decomposition results of G.}
 \item{$U}{eigen vectors of G.}
 \item{$delta}{eigen values of G.}
 }

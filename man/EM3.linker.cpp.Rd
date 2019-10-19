@@ -7,8 +7,8 @@
 EM3.linker.cpp(y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
   Gammas0 = lapply(Ws0, function(x) diag(ncol(x))), gammas.diag = TRUE,
   X.fix = TRUE, eigen.SGS = NULL, eigen.G = NULL, tol = NULL,
-  bounds = c(1e-06, 1e+06), n.thres = 450, spectral.method = NULL,
-  REML = TRUE, pred = TRUE)
+  bounds = c(1e-06, 1e+06), optimizer = "nlminb", traceInside = 0,
+  n.thres = 450, spectral.method = NULL, REML = TRUE, pred = TRUE)
 }
 \arguments{
 \item{y0}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
@@ -52,6 +52,10 @@ Eigen vectors whose eigen values are less than "tol" argument will be omitted fr
 If tol is NULL, top 'n' eigen values will be effective.}
 
 \item{bounds}{Lower and upper bounds for weights.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
+
+\item{traceInside}{Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.}
 
 \item{n.thres}{If \eqn{n >= n.thres}, perform EMM1.cpp. Else perform EMM2.cpp.}
 

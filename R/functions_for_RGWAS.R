@@ -694,6 +694,7 @@ qq <- function(scores) {
 #' @param Hinv the inverse of \eqn{H = ZKZ' + \lambda I} where \eqn{\lambda = \sigma^2_e / \sigma^2_u}.
 #' @param P3D When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 #' When P3D = FALSE, variance components are estimated by REML for each marker separately.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param eigen.G A list with
 #' \describe{
 #' \item{$values}{eigen values}
@@ -722,7 +723,7 @@ qq <- function(scores) {
 #'
 #' @export
 #'
-score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
+score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE, optimizer = "nlminb",
                        eigen.G = NULL,  min.MAF = 0.02, count = TRUE) {
   n.mark <- ncol(M.now)
   scores <- array(NA, n.mark)
@@ -769,10 +770,10 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
       if (!P3D) {
         Xi <- make.full(Xi)
         if(length(ZETA) > 1){
-          EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G,
+          EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G, optimizer = optimizer,
                              tol = NULL, n.thres = 450, REML = TRUE, pred = FALSE)
         }else{
-          EMM.res <- EMM.cpp(y = yi, X = Xi, ZETA = ZETA.now, eigen.G = eigen.G,
+          EMM.res <- EMM.cpp(y = yi, X = Xi, ZETA = ZETA.now, eigen.G = eigen.G, optimizer = optimizer,
                              tol = NULL, n.thres = 450, REML = TRUE)
         }
         H2inv <- EMM.res$Hinv
@@ -811,6 +812,7 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
 #' @param n.core Setting n.core > 1 will enable parallel execution on a machine with multiple cores.
 #' @param P3D When P3D = TRUE, variance components are estimated by REML only once, without any markers in the model.
 #' When P3D = FALSE, variance components are estimated by REML for each marker separately.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param eigen.G A list with
 #' \describe{
 #' \item{$values}{eigen values}
@@ -839,7 +841,7 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE,
 #'
 #' @export
 #'
-score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRUE,
+score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRUE, optimizer = "nlminb",
                           eigen.G = NULL,  min.MAF = 0.02, count = TRUE) {
   n.mark <- ncol(M.now)
 
@@ -868,10 +870,10 @@ score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRU
       if (!P3D) {
         Xi <- make.full(Xi)
         if(length(ZETA) > 1){
-          EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G,
+          EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G, optimizer = optimizer,
                              tol = NULL, n.thres = 450, REML = TRUE, pred = FALSE)
         }else{
-          EMM.res <- EMM.cpp(y = yi, X = Xi, ZETA = ZETA.now, eigen.G = eigen.G,
+          EMM.res <- EMM.cpp(y = yi, X = Xi, ZETA = ZETA.now, eigen.G = eigen.G, optimizer = optimizer,
                              tol = NULL, n.thres = 450, REML = TRUE)
         }
         H2inv <- EMM.res$Hinv
@@ -988,6 +990,7 @@ make.full <- function(X) {
 #' More precisely, the number of SNPs will be 2 * window.size.half + 1.
 #' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
 #' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param chi0.mixture RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where r is the degree of freedom.
 #' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
@@ -1013,7 +1016,7 @@ make.full <- function(X) {
 #'
 #' @export
 #'
-score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eigen.G = NULL,
+score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eigen.G = NULL, optimizer = "nlminb",
                           map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
                           test.effect = "additive", window.size.half = 5, window.slide = 1,
                           chi0.mixture = 0.5, weighting.center = TRUE, weighting.other = NULL,
@@ -1267,19 +1270,19 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
           Gammas0 <- list(K = K.SNP)
           Ws0 <- list(W = Z.part)
           Zs0 <- list(Z = diag(nrow(Mis.0)))
-          EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+          EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                          Zs0 = Zs0, Ws0 = Ws0, Gammas0 = Gammas0,
                                          gammas.diag = FALSE, X.fix = TRUE, tol = NULL,
                                          eigen.SGS = eigen.SGS, eigen.G = eigen.G,
                                          REML = TRUE, pred = FALSE), silent = TRUE)
           if(class(EMM.res2) == "try-error"){
             ZETA.now2 <- c(ZETA.now, list(part = list(Z = Z.part, K = K.SNP)))
-            EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL,
+            EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL, optimizer = optimizer,
                                     REML = TRUE, pred = FALSE), silent = TRUE)
           }
         }else{
           ZETA.now2 <- c(ZETA.now, list(part = list(Z = Z.part, K = K.SNP)))
-          EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL,
+          EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL, optimizer = optimizer,
                                   REML = TRUE, pred = FALSE), silent = TRUE)
         }
 
@@ -1363,7 +1366,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
           test.no.now <- test.no[j]
           if(length(ZETA.now) == 1){
             if(test.no.now == 1){
-              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                              Zs0 = Zs0.A, Ws0 = Ws0.A, Gammas0 = Gammas0.A,
                                              gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G,
@@ -1371,7 +1374,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
             }
 
             if(test.no.now == 2){
-              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                              Zs0 = Zs0.D, Ws0 = Ws0.D, Gammas0 = Gammas0.D,
                                              gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G,
@@ -1379,7 +1382,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
             }
 
             if(test.no.now == 3){
-              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                              Zs0 = Zs0.AD, Ws0 = Ws0.AD, Gammas0 = Gammas0.AD,
                                              gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G,
@@ -1407,33 +1410,33 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
               }
 
               if(test.no.now == 1){
-                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL,
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL, optimizer = optimizer,
                                         REML = TRUE, pred = FALSE), silent = TRUE)
               }
 
               if(test.no.now == 2){
-                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL,
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL, optimizer = optimizer,
                                         REML = TRUE, pred = FALSE), silent = TRUE)
               }
 
               if(test.no.now == 3){
-                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL,
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL, optimizer = optimizer,
                                         REML = TRUE, pred = FALSE), silent = TRUE)
               }
             }
           }else{
             if(test.no.now == 1){
-              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL,
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL, optimizer = optimizer,
                                       REML = TRUE, pred = FALSE), silent = TRUE)
             }
 
             if(test.no.now == 2){
-              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL,
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL, optimizer = optimizer,
                                       REML = TRUE, pred = FALSE), silent = TRUE)
             }
 
             if(test.no.now == 3){
-              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL,
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL, optimizer = optimizer,
                                       REML = TRUE, pred = FALSE), silent = TRUE)
             }
           }
@@ -1539,6 +1542,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 #' More precisely, the number of SNPs will be 2 * window.size.half + 1.
 #' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
 #' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param chi0.mixture RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where r is the degree of freedom.
 #' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
@@ -1566,7 +1570,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 #'
 score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eigen.G = NULL, n.core = 2,
                              map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
-                             test.effect = "additive", window.size.half = 5, window.slide = 1,
+                             test.effect = "additive", window.size.half = 5, window.slide = 1, optimizer = "nlminb",
                              chi0.mixture = 0.5, weighting.center = TRUE, weighting.other = NULL,
                              gene.set = NULL, min.MAF = 0.02, count = TRUE){
   n <- length(y)
@@ -1798,19 +1802,19 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
           Gammas0 <- list(K = K.SNP)
           Ws0 <- list(W = Z.part)
           Zs0 <- list(Z = diag(nrow(Mis.0)))
-          EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+          EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                          Zs0 = Zs0, Ws0 = Ws0, Gammas0 = Gammas0,
                                          gammas.diag = FALSE, X.fix = TRUE, tol = NULL,
                                          eigen.SGS = eigen.SGS, eigen.G = eigen.G,
                                          REML = TRUE, pred = FALSE), silent = TRUE)
           if(class(EMM.res2) == "try-error"){
             ZETA.now2 <- c(ZETA.now, list(part = list(Z = Z.part, K = K.SNP)))
-            EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL,
+            EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL, optimizer = optimizer,
                                     REML = TRUE, pred = FALSE), silent = TRUE)
           }
         }else{
           ZETA.now2 <- c(ZETA.now, list(part = list(Z = Z.part, K = K.SNP)))
-          EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL,
+          EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2, tol = NULL, optimizer = optimizer,
                                   REML = TRUE, pred = FALSE), silent = TRUE)
         }
 
@@ -1894,7 +1898,7 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
           test.no.now <- test.no[j]
           if(length(ZETA.now) == 1){
             if(test.no.now == 1){
-              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                              Zs0 = Zs0.A, Ws0 = Ws0.A, Gammas0 = Gammas0.A,
                                              gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G,
@@ -1902,7 +1906,7 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
             }
 
             if(test.no.now == 2){
-              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                              Zs0 = Zs0.D, Ws0 = Ws0.D, Gammas0 = Gammas0.D,
                                              gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G,
@@ -1910,7 +1914,7 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
             }
 
             if(test.no.now == 3){
-              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now,
+              EMM.res2 <- try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, optimizer = optimizer,
                                              Zs0 = Zs0.AD, Ws0 = Ws0.AD, Gammas0 = Gammas0.AD,
                                              gammas.diag = TRUE, X.fix = TRUE, tol = NULL,
                                              eigen.SGS = eigen.SGS, eigen.G = eigen.G,
@@ -1938,33 +1942,33 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
               }
 
               if(test.no.now == 1){
-                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL,
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL, optimizer = optimizer,
                                         REML = TRUE, pred = FALSE), silent = TRUE)
               }
 
               if(test.no.now == 2){
-                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL,
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL, optimizer = optimizer,
                                         REML = TRUE, pred = FALSE), silent = TRUE)
               }
 
               if(test.no.now == 3){
-                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL,
+                EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL, optimizer = optimizer,
                                         REML = TRUE, pred = FALSE), silent = TRUE)
               }
             }
           }else{
             if(test.no.now == 1){
-              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL,
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.A, tol = NULL, optimizer = optimizer,
                                       REML = TRUE, pred = FALSE), silent = TRUE)
             }
 
             if(test.no.now == 2){
-              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL,
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.D, tol = NULL, optimizer = optimizer,
                                       REML = TRUE, pred = FALSE), silent = TRUE)
             }
 
             if(test.no.now == 3){
-              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL,
+              EMM.res2 <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.AD, tol = NULL, optimizer = optimizer,
                                       REML = TRUE, pred = FALSE), silent = TRUE)
             }
           }
@@ -2898,10 +2902,12 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 #' @param num.hap When haplotype = TRUE, you can set the number of haplotypes which you expect.
 #'           Then similar arrays are considered as the same haplotype, and then make kernel(K.SNP) whose dimension is num.hap x num.hap.
 #'           When num.hap = NULL (default), num.hap will be set as the maximum number which reflects the difference between lines.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param window.size.half This argument decides how many SNPs (around the SNP you want to test) are used to calculated K.SNP.
 #' More precisely, the number of SNPs will be 2 * window.size.half + 1.
 #' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
 #' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param chi0.mixture RAINBOW assumes the tdeviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where r is the degree of freedom.
 #' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
@@ -2928,7 +2934,7 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 #'
 #' @export
 #'
-score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL, eigen.G = NULL,
+score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL, eigen.G = NULL, optimizer = "nlminb",
                                     map, haplotype = TRUE, num.hap = NULL, window.size.half = 5, window.slide = 1,
                                     chi0.mixture = 0.5, gene.set = NULL, dominance.eff = TRUE,
                                     min.MAF = 0.02, count = TRUE){
@@ -3404,23 +3410,23 @@ score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
 
       if(lin.method){
         Gammas0.null <- lapply(Ws0.null, function(x) diag(ncol(x)))
-        EMM.res.null <-  try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, tol = NULL,
+        EMM.res.null <-  try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, tol = NULL, optimizer = optimizer,
                                             Zs0 = Zs0.null, Ws0 = Ws0.null, Gammas0 = Gammas0.null,
                                             gammas.diag = TRUE, X.fix = TRUE,
                                             eigen.SGS = eigen.SGS, eigen.G = eigen.G,
                                             REML = TRUE, pred = FALSE), silent = TRUE)
 
         Gammas0.alt <- lapply(Ws0.alt, function(x) diag(ncol(x)))
-        EMM.res.alt <-  try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, tol = NULL,
+        EMM.res.alt <-  try(EM3.linker.cpp(y0 = y, X0 = X.now, ZETA = ZETA.now, tol = NULL, optimizer = optimizer,
                                            Zs0 = Zs0.alt, Ws0 = Ws0.alt, Gammas0 = Gammas0.alt,
                                            gammas.diag = TRUE, X.fix = TRUE,
                                            eigen.SGS = eigen.SGS, eigen.G = eigen.G,
                                            REML = TRUE, pred = FALSE), silent = TRUE)
       }else{
-        EMM.res.null <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.null, tol = NULL,
+        EMM.res.null <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.null, tol = NULL, optimizer = optimizer,
                                     REML = TRUE, pred = FALSE), silent = TRUE)
 
-        EMM.res.alt <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.alt, tol = NULL,
+        EMM.res.alt <- try(EM3.cpp(y = y, X0 = X.now, ZETA = ZETA.now2.alt, tol = NULL, optimizer = optimizer,
                                    REML = TRUE, pred = FALSE), silent = TRUE)
       }
 

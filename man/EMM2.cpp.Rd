@@ -5,8 +5,8 @@
 \title{Equation of mixed model for one kernel, EMMA-based method (inplemented by Rcpp)}
 \usage{
 EMM2.cpp(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL,
-  tol = NULL, REML = TRUE, bounds = c(1e-09, 1e+09), SE = FALSE,
-  return.Hinv = FALSE)
+  tol = NULL, optimizer = "nlminb", traceInside = 0, REML = TRUE,
+  bounds = c(1e-09, 1e+09), SE = FALSE, return.Hinv = FALSE)
 }
 \arguments{
 \item{y}{\eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.}
@@ -39,6 +39,10 @@ We recommend you assign the result of the eigen decomposition beforehand for tim
 \item{tol}{The tolerance for detecting linear dependencies in the columns of G = ZKZ'.
 Eigen vectors whose eigen values are less than "tol" argument will be omitted from results.
 If tol is NULL, top 'n' eigen values will be effective.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
+
+\item{traceInside}{Perform trace for the optimzation if traceInside >= 1, and this argument shows the frequency of reports.}
 
 \item{REML}{You can choose which method you will use, "REML" or "ML".
 If REML = TRUE, you will perform "REML", and if REML = FALSE, you will perform "ML".}

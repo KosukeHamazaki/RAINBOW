@@ -51,6 +51,7 @@
 #' More precisely, the number of SNPs will be 2 * window.size.half + 1.
 #' @param window.slide This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
 #' If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param chi0.mixture RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 #' where r is the degree of freedom.
 #' The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.
@@ -187,7 +188,7 @@ RGWAS.twostep.epi <- function(pheno, geno, ZETA = NULL, covariate = NULL, covari
                               structure.matrix = NULL, n.PC = 0, min.MAF = 0.02, n.core = 1,
                               check.size.epi = 4, epistasis.percent = 0.05, check.epi.max = 200,
                               your.check = NULL, GWAS.res.first = NULL, P3D = TRUE, test.method = "LR",
-                              dominance.eff = TRUE, haplotype = TRUE, num.hap = NULL,
+                              dominance.eff = TRUE, haplotype = TRUE, num.hap = NULL, optimizer = "nlminb",
                               window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
                               gene.set = NULL, sig.level = 0.05, method.thres = "BH", plot.qq.1 = TRUE, plot.Manhattan.1 = TRUE,
                               plot.epi.3d = TRUE, plot.epi.2d = TRUE, plot.method = 1,
@@ -204,7 +205,7 @@ RGWAS.twostep.epi <- function(pheno, geno, ZETA = NULL, covariate = NULL, covari
                                    n.PC = n.PC, min.MAF = min.MAF, P3D = P3D, n.core = n.core,
                                    sig.level = sig.level, method.thres = method.thres, plot.qq = plot.qq.1, plot.Manhattan = plot.Manhattan.1,
                                    plot.method = plot.method, plot.col1 = plot.col1, plot.col2 = plot.col2,
-                                   plot.type = plot.type, plot.pch = plot.pch, saveName = saveName,
+                                   plot.type = plot.type, plot.pch = plot.pch, saveName = saveName, optimizer = optimizer,
                                    main.qq = main.qq.1, main.man = main.man.1, plot.add.last = FALSE, return.EMM.res = FALSE,
                                    thres = FALSE, verbose = verbose, count = count, time = time)
   }else{
@@ -287,7 +288,7 @@ RGWAS.twostep.epi <- function(pheno, geno, ZETA = NULL, covariate = NULL, covari
                                            n.PC = n.PC, min.MAF = min.MAF, n.core = n.core,
                                            test.method = test.method, dominance.eff = dominance.eff, haplotype = haplotype,
                                            num.hap = num.hap, window.size.half = window.size.half, window.slide = window.slide,
-                                           chi0.mixture = chi0.mixture, gene.set = gene.set,
+                                           chi0.mixture = chi0.mixture, gene.set = gene.set, optimizer = optimizer,
                                            plot.epi.3d = FALSE, plot.epi.2d = FALSE, main.epi.3d = main.epi.3d,
                                            main.epi.2d = main.epi.2d, saveName = saveName, verbose = verbose,
                                            count = count, time = time)

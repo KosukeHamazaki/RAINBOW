@@ -9,9 +9,9 @@ RGWAS.epistasis(pheno, geno, ZETA = NULL, covariate = NULL,
   min.MAF = 0.02, n.core = 1, test.method = "LR",
   dominance.eff = TRUE, haplotype = TRUE, num.hap = NULL,
   window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
-  gene.set = NULL, plot.epi.3d = TRUE, plot.epi.2d = TRUE,
-  main.epi.3d = NULL, main.epi.2d = NULL, saveName = NULL,
-  verbose = FALSE, count = TRUE, time = TRUE)
+  optimizer = "nlminb", gene.set = NULL, plot.epi.3d = TRUE,
+  plot.epi.2d = TRUE, main.epi.3d = NULL, main.epi.2d = NULL,
+  saveName = NULL, verbose = FALSE, count = TRUE, time = TRUE)
 }
 \arguments{
 \item{pheno}{Data frame where the first column is the line name (gid). The remaining columns should be a phenotype to test.}
@@ -63,6 +63,8 @@ If you want to perform SNP set by bins, please set window.slide = 2 * window.siz
 \item{chi0.mixture}{RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 where r is the degree of freedom.
 The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{gene.set}{If you have information of gene (or haplotype block), you can use it to perform kernel-based GWAS.
 You should assign your gene information to gene.set in the form of a "data.frame" (whose dimension is (the number of gene) x 2).

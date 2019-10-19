@@ -8,7 +8,7 @@ score.calc.LR.MC(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL,
   eigen.G = NULL, n.core = 2, map, kernel.method = "linear",
   kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
   test.effect = "additive", window.size.half = 5, window.slide = 1,
-  chi0.mixture = 0.5, weighting.center = TRUE,
+  optimizer = "nlminb", chi0.mixture = 0.5, weighting.center = TRUE,
   weighting.other = NULL, gene.set = NULL, min.MAF = 0.02,
   count = TRUE)
 }
@@ -76,6 +76,8 @@ More precisely, the number of SNPs will be 2 * window.size.half + 1.}
 
 \item{window.slide}{This argument determines how often you test markers. If window.slide = 1, every marker will be tested.
 If you want to perform SNP set by bins, please set window.slide = 2 * window.size.half + 1.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{chi0.mixture}{RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 where r is the degree of freedom.

@@ -99,6 +99,7 @@
 #' @param main.man.2 The title of manhattan plot for SNP-set GWAS. If this argument is NULL, trait name is set as the title.
 #' @param plot.add.last If saveName is not NULL and this argument is TRUE, then you can add lines or dots to manhattan plots.
 #' However, you should also write "dev.off()" after adding something.
+#' @param optimizer The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.
 #' @param return.EMM.res When return.EMM.res = TRUE, the results of equation of mixed models are included in the result of RGWAS.
 #' @param thres If thres = TRUE, the threshold of the manhattan plot is included in the result of RGWAS.
 #' When return.EMM.res or thres is TRUE, the results will be "list" class.
@@ -203,7 +204,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                           P3D = TRUE, test.method.1 = "normal", test.method.2 = "LR",
                           kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE,
                           num.hap = NULL, test.effect.1 = "additive", test.effect.2 = "additive",
-                          window.size.half = 5, window.slide = 1, chi0.mixture = 0.5,
+                          window.size.half = 5, window.slide = 1, chi0.mixture = 0.5, optimizer = "nlminb",
                           gene.set = NULL, weighting.center = TRUE, weighting.other = NULL,
                           sig.level = 0.05, method.thres = "BH", plot.qq.1 = TRUE, plot.Manhattan.1 = TRUE,
                           plot.qq.2 = TRUE, plot.Manhattan.2 = TRUE, plot.method = 1,
@@ -226,7 +227,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                                      n.PC = n.PC, min.MAF = min.MAF, P3D = P3D, n.core = n.core,
                                      sig.level = sig.level, method.thres = method.thres, plot.qq = plot.qq.1, plot.Manhattan = plot.Manhattan.1,
                                      plot.method = plot.method, plot.col1 = plot.col1, plot.col2 = plot.col2,
-                                     plot.type = plot.type, plot.pch = plot.pch, saveName = saveName,
+                                     plot.type = plot.type, plot.pch = plot.pch, saveName = saveName, optimizer = optimizer,
                                      main.qq = main.qq.1, main.man = main.man.1, plot.add.last = FALSE, return.EMM.res = FALSE,
                                      thres = FALSE, verbose = verbose, count = count, time = time)
     }else{
@@ -241,7 +242,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                                        plot.method = plot.method, plot.col1 = plot.col1, plot.col2 = plot.col2,
                                        plot.type = plot.type, plot.pch = plot.pch, saveName = saveName,
                                        main.qq = main.qq.2, main.man = main.man.2, plot.add.last = FALSE,
-                                       return.EMM.res = return.EMM.res,
+                                       return.EMM.res = return.EMM.res, optimizer = optimizer,
                                        thres = FALSE, verbose = verbose, count = count, time = time)
     }
   }else{
@@ -365,7 +366,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                                          plot.method = plot.method, plot.col1 = plot.col1, plot.col2 = plot.col2,
                                          plot.type = plot.type, plot.pch = plot.pch, saveName = saveName,
                                          main.qq = main.qq.2, main.man = main.man.2, plot.add.last = FALSE,
-                                         return.EMM.res = return.EMM.res,
+                                         return.EMM.res = return.EMM.res, optimizer = optimizer,
                                          thres = FALSE, verbose = verbose, count = count, time = time)
 
 

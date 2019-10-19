@@ -12,10 +12,10 @@ RGWAS.twostep(pheno, geno, ZETA = NULL, covariate = NULL,
   kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE,
   num.hap = NULL, test.effect.1 = "additive",
   test.effect.2 = "additive", window.size.half = 5, window.slide = 1,
-  chi0.mixture = 0.5, gene.set = NULL, weighting.center = TRUE,
-  weighting.other = NULL, sig.level = 0.05, method.thres = "BH",
-  plot.qq.1 = TRUE, plot.Manhattan.1 = TRUE, plot.qq.2 = TRUE,
-  plot.Manhattan.2 = TRUE, plot.method = 1,
+  chi0.mixture = 0.5, optimizer = "nlminb", gene.set = NULL,
+  weighting.center = TRUE, weighting.other = NULL, sig.level = 0.05,
+  method.thres = "BH", plot.qq.1 = TRUE, plot.Manhattan.1 = TRUE,
+  plot.qq.2 = TRUE, plot.Manhattan.2 = TRUE, plot.method = 1,
   plot.col1 = c("dark blue", "cornflowerblue"), plot.col2 = 1,
   plot.col3 = c("red3", "orange3"), plot.type = "p", plot.pch = 16,
   saveName = NULL, main.qq.1 = NULL, main.man.1 = NULL,
@@ -105,6 +105,8 @@ If you want to perform SNP set by bins, please set window.slide = 2 * window.siz
 \item{chi0.mixture}{RAINBOW assumes the deviance is considered to follow a x chisq(df = 0) + (1 - a) x chisq(df = r).
 where r is the degree of freedom.
 The argument chi0.mixture is a (0 <= a < 1), and default is 0.5.}
+
+\item{optimizer}{The function used in the optimization process. We offer "optim", "optimx", and "nlminb" functions.}
 
 \item{gene.set}{If you have information of gene (or haplotype block), you can use it to perform kernel-based GWAS.
 You should assign your gene information to gene.set in the form of a "data.frame" (whose dimension is (the number of gene) x 2).
