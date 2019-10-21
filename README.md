@@ -3,6 +3,13 @@
 #### Author : Kosuke Hamazaki (hamazaki@ut-biomet.org)
 #### Date : 2019/03/25 (Last update: 2019/10/21)
 
+## NOTE!!!!
+### The newest version of `RAINBOW` is `RAINBOWR`, which is available at https://github.com/KosukeHamazaki/RAINBOWR.
+##### We changed the package name from `RAINBOW` to `RAINBOWR` because the original package name `RAINBOW` conflicted with the package `rainbow` (https://cran.r-project.org/web/packages/rainbow/index.html) when we submitted our package to `CRAN` (https://cran.r-project.org/).
+##### We will continue to maintain this repository, but we strongly recommend the installation of `RAINBOWR` from https://github.com/KosukeHamazaki/RAINBOWR.
+
+----------
+
 In this repository, the `R` package `RAINBOW` is available.
 Here, we describe how to install and how to use `RAINBOW`.
 
