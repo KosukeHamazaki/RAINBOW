@@ -8,8 +8,6 @@
 #' polygenetic effects are regarded as random effects \eqn{u}.
 #' The variances of \eqn{u} and \eqn{e} are automatically determined by the heritability.
 #'
-#' @importFrom rrBLUP A.mat
-#' @importFrom MASS mvrnorm
 #'
 #' @param x n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param sample.sets n.sample x n.mark genotype matrix. Markers with fixed effects (QTNs) are chosen from sample.sets.

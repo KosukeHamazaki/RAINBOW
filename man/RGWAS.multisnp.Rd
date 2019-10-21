@@ -238,18 +238,23 @@ str(ZETA)
 
 
 ### Perform SNP-set GWAS (by regarding 11 SNPs as one SNP-set)
-SNP_set.res <- RGWAS.multisnp(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA,
-n.PC = 4, test.method = "LR", kernel.method = "linear", gene.set = NULL,
-test.effect = "additive", window.size.half = 5, window.slide = 11)
+SNP_set.res <- RGWAS.multisnp(pheno = pheno.GWAS, geno = geno.GWAS,
+                              ZETA = ZETA, n.PC = 4, test.method = "LR",
+                              kernel.method = "linear", gene.set = NULL,
+                              test.effect = "additive", window.size.half = 5,
+                              window.slide = 11)
 See(SNP_set.res$D)  ### Column 4 contains -log10(p) values for markers
 
 ### Perform SNP-set GWAS 2 (by regarding 11 SNPs as one SNP-set with sliding window)
 ### It will take almost 25 minutes...
-SNP_set.res2 <- RGWAS.multisnp(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA,
-n.PC = 4, test.method = "LR", kernel.method = "linear", gene.set = NULL,
-test.effect = "additive", window.size.half = 5, window.slide = 1)
-See(SNP_set.res2$D)  ### Column 4 contains -log10(p) values for markers
-
+\dontrun{
+  SNP_set.res2 <- RGWAS.multisnp(pheno = pheno.GWAS, geno = geno.GWAS,
+                                 ZETA = ZETA, n.PC = 4, test.method = "LR",
+                                 kernel.method = "linear", gene.set = NULL,
+                                 test.effect = "additive", window.size.half = 5,
+                                 window.slide = 1)
+  See(SNP_set.res2$D)  ### Column 4 contains -log10(p) values for markers
+}
 }
 \references{
 Storey, J.D. and Tibshirani, R. (2003) Statistical significance for genomewide studies. Proc Natl Acad Sci. 100(16): 9440-9445.

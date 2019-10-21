@@ -134,12 +134,11 @@ EM3.linker.res <- EM3.linker.cpp(y0 = pheno.mat, X0 = NULL, ZETA = ZETA,
 (Vu <- EM3.linker.res$Vu)   ### estimated genetic variance
 (Ve <- EM3.linker.res$Ve)   ### estimated residual variance
 (weights <- EM3.linker.res$weights)   ### estimated proportion of two genetic variances
-(herit <- Vu * weights / (Vu + Ve))   ### genomic heritability (additive (all chromosomes), additive (chromosome 12))
+(herit <- Vu * weights / (Vu + Ve))   ### genomic heritability (all chromosomes, chromosome 12)
 
 (beta <- EM3.linker.res$beta)   ### Here, this is an intercept.
-u <- EM3.linker.res$u   ### estimated genotypic values (additive (all chromosomes), additive (chromosome 12))
+u <- EM3.linker.res$u   ### estimated genotypic values (all chromosomes, chromosome 12)
 See(u)
-
 }
 \references{
 Kang, H.M. et al. (2008) Efficient Control of Population Structure

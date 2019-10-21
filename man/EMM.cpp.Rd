@@ -147,8 +147,6 @@ EMM.res <- EMM.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
 (beta <- EMM.res$beta)   ### Here, this is an intercept.
 u <- EMM.res$u   ### estimated genotypic values
 See(u)
-
-
 }
 \references{
 Kang, H.M. et al. (2008) Efficient Control of Population Structure

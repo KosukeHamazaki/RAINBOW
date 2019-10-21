@@ -117,8 +117,6 @@ EM3.res <- EM3.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
 (beta <- EM3.res$beta)   ### Here, this is an intercept.
 u <- EM3.res$u   ### estimated genotypic values (additive, additive x additive)
 See(u)
-
-
 }
 \references{
 Kang, H.M. et al. (2008) Efficient Control of Population Structure

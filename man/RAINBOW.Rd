@@ -5,7 +5,7 @@
 \alias{RAINBOW}
 \alias{RAINBOW-package}
 \title{RAINBOW :
-Perform genome wide asscoiation study (GWAS) by kernel-based methods}
+Perform Genome-Wide Asscoiation Study (GWAS) By Kernel-Based Methods}
 \description{
-Users can test multiple SNPs simultaneously by kernel-based methods. Users can test not only additive effects but also dominance and epistatic effects.
+Users can test multiple SNPs simultaneously by kernel-based (SNP-set) methods. Users can test not only additive effects but also dominance and epistatic effects.
 }

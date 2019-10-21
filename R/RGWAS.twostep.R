@@ -90,8 +90,9 @@
 #'  plot.col1[1] for odd chromosomes and plot.col1[2] for even chromosomes
 #' @param plot.col2 color of the manhattan plot. color changes with chromosome and it starts from plot.col2 + 1
 #' (so plot.col2 = 1 means color starts from red.)
-#' @param plot.col2 color of the points of manhattan plot which are added after the reestimation by SNP-set method.
-#' color changes with chromosome and it starts from plot.col2 + 1 (so plot.col2 = 1 means color starts from red.)
+#' @param plot.col3 color of the points of manhattan plot which are added after the reestimation by SNP-set method.
+#' You should substitute this argument as color vector whose length is 2.
+#' plot.col3[1] for odd chromosomes and plot.col3[2] for even chromosomes.
 #' @param plot.type  This argument determines the type of the manhattan plot. See the help page of "plot".
 #' @param plot.pch This argument determines the shape of the dot of the manhattan plot. See the help page of "plot".
 #' @param saveName When drawing any plot, you can save plots in png format. In saveName, you should substitute the name you want to save.
@@ -147,58 +148,8 @@
 #' Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
 #'
-#' @examples
-#' ### Import RAINBOW
-#' require(RAINBOW)
+#' @example examples/RGWAS.twostep_example.R
 #'
-#' ### Load example datasets
-#' data("Rice_Zhao_etal")
-#'
-#' ### View each dataset
-#' See(Rice_geno_score)
-#' See(Rice_geno_map)
-#' See(Rice_pheno)
-#'
-#' ### Select one trait for example
-#' trait.name <- "Flowering.time.at.Arkansas"
-#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
-#'
-#' ### Remove SNPs whose MAF <= 0.05
-#' x.0 <- t(Rice_geno_score)
-#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
-#' x <- MAF.cut.res$x
-#' map <- MAF.cut.res$map
-#'
-#'
-#' ### Estimate genetic relationship matrix
-#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
-#'
-#'
-#' ### Modify data
-#' modify.data.res <- modify.data(pheno.mat = y, geno.mat = x, map = map,
-#'                                return.ZETA = TRUE, return.GWAS.format = TRUE)
-#' pheno.GWAS <- modify.data.res$pheno.GWAS
-#' geno.GWAS <- modify.data.res$geno.GWAS
-#' ZETA <- modify.data.res$ZETA
-#'
-#'
-#' ### View each data for RAINBOW
-#' See(pheno.GWAS)
-#' See(geno.GWAS)
-#' str(ZETA)
-#'
-#'
-#' ### Perform two step SNP-set GWAS (single-snp GWAS -> SNP-set GWAS for significant markers)
-#' twostep.SNP_set.res <- RGWAS.twostep(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA, kernel.percent = 0.2,
-#'                                      n.PC = 4, test.method.2 = "LR", kernel.method = "linear", gene.set = NULL,
-#'                                      test.effect.2 = "additive", window.size.half = 5, window.slide = 1)
-#'
-#' See(twostep.SNP_set.res$D)
-#' ### Column 4 contains -log10(p) values for markers with the first method (single-SNP GWAS)
-#' ### Column 5 contains -log10(p) values for markers with the second method (SNP-set GWAS)
-#'
-#'
-#' @export
 #'
 #'
 RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.factor = NULL,
@@ -245,7 +196,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                                        plot.method = plot.method, plot.col1 = plot.col1, plot.col2 = plot.col2,
                                        plot.type = plot.type, plot.pch = plot.pch, saveName = saveName,
                                        main.qq = main.qq.2, main.man = main.man.2, plot.add.last = FALSE,
-                                       return.EMM.res = return.EMM.res, optimizer = optimizer,
+                                       return.EMM.res = FALSE, optimizer = optimizer,
                                        thres = FALSE, verbose = verbose, count = count, time = time)
     }
   }else{
@@ -358,7 +309,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
 
 
     print(paste("The 2nd step : Recalculating -log10(p) of", trait.name, "for", n.checks, check.obj, "by kernel-based (mutisnp) GWAS."))
-    RGWAS.multisnp.res <- RGWAS.multisnp(pheno = pheno.now, geno = geno.check, ZETA = ZETA, covariate = covariate,
+    RGWAS.multisnp.res.0 <- RGWAS.multisnp(pheno = pheno.now, geno = geno.check, ZETA = ZETA, covariate = covariate,
                                          covariate.factor = covariate.factor, structure.matrix = structure.matrix,
                                          n.PC = n.PC, min.MAF = min.MAF, test.method = test.method.2, n.core = n.core,
                                          kernel.method = kernel.method, kernel.h = kernel.h, haplotype = haplotype,
@@ -369,9 +320,11 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                                          plot.method = plot.method, plot.col1 = plot.col1, plot.col2 = plot.col2,
                                          plot.type = plot.type, plot.pch = plot.pch, saveName = saveName,
                                          main.qq = main.qq.2, main.man = main.man.2, plot.add.last = FALSE,
-                                         return.EMM.res = return.EMM.res, optimizer = optimizer,
+                                         return.EMM.res = TRUE, optimizer = optimizer,
                                          thres = FALSE, verbose = verbose, count = count, time = time)
 
+    RGWAS.multisnp.res <- RGWAS.multisnp.res.0$D
+    EMM.res0 <- RGWAS.multisnp.res.0$EMM.res
 
     if((kernel.method == "linear") & (length(test.effect.2) >= 2)){
       GWAS.res.merge.list <- lapply(RGWAS.multisnp.res, function(x){
@@ -464,7 +417,7 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
                                plot.type = plot.type, plot.pch = plot.pch)
               }
             }else{
-              manhattan2(input = cres.correction, sig.level = sig.level, method.thres = method.thres, plot.col2 = plot.col2,
+              manhattan2(input = res.correction, sig.level = sig.level, method.thres = method.thres, plot.col2 = plot.col2,
                          plot.type = plot.type, plot.pch = plot.pch)
             }
             if(is.null(main.man.2)){

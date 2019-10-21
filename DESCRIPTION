@@ -1,24 +1,23 @@
 Package: RAINBOW
 Type: Package
-Title: Perform genome-wide asscoiation study (GWAS) by kernel-based methods
-Version: 0.1.5
+Title: Perform Genome-Wide Association Study (GWAS) by Kernel-Based Methods
+Version: 0.1.7
 Author: Kosuke Hamazaki and Hiroyoshi Iwata
 Maintainer: Kosuke Hamazaki <hamazaki@ut-biomet.org>
-Description: Users can test multiple SNPs simultaneously by kernel-based methods. Users can test not only additive effects but also dominance and epistatic effects.
+Description: Users can test multiple SNPs simultaneously by kernel-based (SNP-set) methods. Users can test not only additive effects but also dominance and epistatic effects.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.0.0), Rcpp
-Imports: Rcpp,
-         RcppEigen,
-         rrBLUP,
+Depends: R (>= 3.5.0), Rcpp, RcppEigen
+Imports: rrBLUP,
          rgl,
          tcltk,
          Matrix,
          cluster,
          MASS,
          pbmcapply,
-         optimx
+         optimx,
+         methods
 LinkingTo: Rcpp, RcppEigen
 RoxygenNote: 6.1.1
 Suggests: 

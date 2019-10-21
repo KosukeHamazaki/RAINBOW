@@ -182,7 +182,7 @@ See(Rice_pheno)
 
 ### Select one trait for example
 trait.name <- "Flowering.time.at.Arkansas"
-y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
+y <- Rice_pheno[, trait.name, drop = FALSE]
 
 ### Remove SNPs whose MAF <= 0.05
 x.0 <- t(Rice_geno_score)
@@ -209,14 +209,14 @@ See(geno.GWAS)
 str(ZETA)
 
 
-### Perform two step epistasis GWAS (single-snp GWAS -> Check epistasis for significant markers)
+
+
+### Perform two-step epistasis GWAS (single-snp GWAS -> Check epistasis for significant markers)
 twostep.epi.res <- RGWAS.twostep.epi(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA,
-                                     n.PC = 4, test.method = "score", gene.set = NULL,
+                                     n.PC = 4, test.method = "LR", gene.set = NULL,
                                      window.size.half = 5, window.slide = 11)
 
 See(twostep.epi.res$epistasis$scores)
-
-
 }
 \references{
 Kennedy, B.W., Quinton, M. and van Arendonk, J.A. (1992) Estimation of effects of single genes on quantitative traits. J Anim Sci. 70(7): 2000-2012.

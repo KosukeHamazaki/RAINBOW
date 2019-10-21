@@ -8,7 +8,7 @@ knitr::opts_chunk$set(
 ## ---- include=TRUE, eval=FALSE-------------------------------------------
 #  ### If you have not installed yet, ...
 #  install.packages("devtools")
-#  
+#
 #  ### Install RAINBOW from GitHub
 #  devtools::install_github("KosukeHamazaki/RAINBOW")
 
@@ -37,7 +37,7 @@ x <- MAF.cut.res$x
 map <- MAF.cut.res$map
 
 ## ---- include=TRUE-------------------------------------------------------
-### Estimate genetic relationship matrix 
+### Estimate genetic relationship matrix
 K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
 
 ## ---- include=TRUE-------------------------------------------------------

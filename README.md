@@ -1,7 +1,7 @@
 # RAINBOW
 ###   Reliable Association INference By Optimizing Weights
 #### Author : Kosuke Hamazaki (hamazaki@ut-biomet.org)
-#### Date : 2019/03/25
+#### Date : 2019/03/25 (Last update: 2019/10/21)
 
 In this repository, the `R` package `RAINBOW` is available.
 Here, we describe how to install and how to use `RAINBOW`.
@@ -52,7 +52,9 @@ rgl,
 tcltk,
 Matrix,
 cluster,
-MASS
+MASS,
+pbmcapply,
+Optima
 ```
 
 In `RAINBOW`,  since part of the code is written in `Rcpp` (`C++` in `R`),  please check if you can use `C++` in `R`.

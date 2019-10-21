@@ -153,6 +153,10 @@ plot.col1[1] for odd chromosomes and plot.col1[2] for even chromosomes}
 \item{plot.col2}{color of the manhattan plot. color changes with chromosome and it starts from plot.col2 + 1
 (so plot.col2 = 1 means color starts from red.)}
 
+\item{plot.col3}{color of the points of manhattan plot which are added after the reestimation by SNP-set method.
+You should substitute this argument as color vector whose length is 2.
+plot.col3[1] for odd chromosomes and plot.col3[2] for even chromosomes.}
+
 \item{plot.type}{This argument determines the type of the manhattan plot. See the help page of "plot".}
 
 \item{plot.pch}{This argument determines the shape of the dot of the manhattan plot. See the help page of "plot".}
@@ -181,9 +185,6 @@ When return.EMM.res or thres is TRUE, the results will be "list" class.}
 \item{count}{When count is TRUE, you can know how far RGWAS has ended with percent display.}
 
 \item{time}{When time is TRUE, you can know how much time it took to perform RGWAS.}
-
-\item{plot.col2}{color of the points of manhattan plot which are added after the reestimation by SNP-set method.
-color changes with chromosome and it starts from plot.col2 + 1 (so plot.col2 = 1 means color starts from red.)}
 }
 \value{
 \describe{
@@ -241,15 +242,15 @@ str(ZETA)
 
 
 ### Perform two step SNP-set GWAS (single-snp GWAS -> SNP-set GWAS for significant markers)
-twostep.SNP_set.res <- RGWAS.twostep(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA, kernel.percent = 0.2,
-                                     n.PC = 4, test.method.2 = "LR", kernel.method = "linear", gene.set = NULL,
-                                     test.effect.2 = "additive", window.size.half = 5, window.slide = 1)
+twostep.SNP_set.res <- RGWAS.twostep(pheno = pheno.GWAS, geno = geno.GWAS, ZETA = ZETA,
+                                     kernel.percent = 0.2, n.PC = 4, test.method.2 = "LR",
+                                     kernel.method = "linear", gene.set = NULL,
+                                     test.effect.2 = "additive", window.size.half = 5,
+                                     window.slide = 1)
 
 See(twostep.SNP_set.res$D)
 ### Column 4 contains -log10(p) values for markers with the first method (single-SNP GWAS)
 ### Column 5 contains -log10(p) values for markers with the second method (SNP-set GWAS)
-
-
 }
 \references{
 Kennedy, B.W., Quinton, M. and van Arendonk, J.A. (1992) Estimation of effects of single genes on quantitative traits. J Anim Sci. 70(7): 2000-2012.

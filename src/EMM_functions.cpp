@@ -1,6 +1,6 @@
-//' @useDynLib RAINBOW
-//' @importFrom Rcpp evalCpp
-//'
+// @useDynLib RAINBOW
+// @importFrom Rcpp evalCpp
+//
 // [[Rcpp::depends(Rcpp)]]
 // [[Rcpp::depends(RcppEigen)]]
 #include <Rcpp.h>
@@ -12,7 +12,6 @@ typedef Map<MatrixXd> MapMat;
 typedef Map<VectorXd> MapVec;
 
 MatrixXd solve(MatrixXd A, MatrixXd B){
-  const int n(A.rows()), m(A.cols()), k(B.cols());
 
   Rcpp::Function f("solve");
 
@@ -23,7 +22,6 @@ MatrixXd solve(MatrixXd A, MatrixXd B){
 }
 
 MatrixXd  inv(MatrixXd A){
-  const int n(A.rows()), m(A.cols());
 
   Rcpp::Environment pkg = Rcpp::Environment::namespace_env("MASS");
   Rcpp::Function f = pkg["ginv"];
@@ -36,11 +34,10 @@ MatrixXd  inv(MatrixXd A){
 
 
 Rcpp::List  svd(MatrixXd A, int nu, int nv){
-  const int n(A.rows()), m(A.cols());
 
   Rcpp::Function f("svd");
 
-  Rcpp::List sol = f(Rcpp::wrap(A), nu = nu, nv = nv);
+  Rcpp::List sol = f(Rcpp::wrap(A), nu, nv);
 
   return sol;
 }
@@ -75,8 +72,9 @@ MatrixXd extract(MatrixXd A, VectorXd B, int method = 0){
   const int n1(A.rows()), m1(B.rows()), n2(B.rows());
   MatrixXd A2 = MatrixXd::Zero(n2, m1);
 
+
   if(method == 0){
-    for(int i; i < n2; i++){
+    for(int i = 0; i < n2; i++){
       A2.row(i) = A.row(B[i]);
     }
   }
@@ -84,7 +82,7 @@ MatrixXd extract(MatrixXd A, VectorXd B, int method = 0){
 
   if(method == 1){
     MatrixXd A2 = MatrixXd::Zero(n1, n2);
-    for(int i; i < n2; i++){
+    for(int i = 0; i < n2; i++){
       A2.col(i) = A.col(B[i]);
     }
   }
@@ -259,7 +257,7 @@ MatrixXd reshape(MatrixXd A, int nrow, int ncol, int method = 0){
 }
 
 MatrixXd crossprod(MatrixXd A, MatrixXd B){
-  const int n1(A.rows()), n2(B.rows()), m1(A.cols()), m2(B.cols());
+  const int n1(A.rows()), n2(B.rows());
 
   if(n1 != n2){
     Rcpp::stop("Crossproduct cannnot be calculated! Check the dimension of two matrices!");
@@ -274,7 +272,7 @@ MatrixXd crossprod(MatrixXd A, MatrixXd B){
 
 
 MatrixXd tcrossprod(MatrixXd A, MatrixXd B){
-  const int n1(A.rows()), n2(B.rows()), m1(A.cols()), m2(B.cols());
+  const int m1(A.cols()), m2(B.cols());
 
   if(m1 != m2){
     Rcpp::stop("Tcrossproduct cannnot be calculated! Check the dimension of two matrices!");
@@ -317,7 +315,6 @@ Rcpp::List eigen(MatrixXd A, bool symmetric = true, bool ainv = false){
 Rcpp::List eigen2(MatrixXd A, bool ainv = false){
   SelfAdjointEigenSolver<MatrixXd> es(A);
 
-  const int n(A.rows());
 
   MatrixXd U = es.eigenvectors();
   MatrixXd D = es.eigenvalues();
@@ -353,7 +350,6 @@ Rcpp::List eigen2(MatrixXd A, bool ainv = false){
 MatrixXd aHinvb(MatrixXd A, MatrixXd B,
                 MatrixXd U, MatrixXd EV)
 {
-  const int n(A.rows()), m1(A.cols()), m2(B.cols());
   MatrixXd va = U.adjoint() * A;
   MatrixXd vb = U.adjoint() * B;
 
@@ -375,7 +371,7 @@ Rcpp::List aPb_series(MatrixXd A, MatrixXd B,
                       MatrixXd U, MatrixXd EV,
                       MatrixXd X)
 {
-  const int n(A.rows()), m1(A.cols()), m2(B.cols()), p(X.cols()), m(U.cols());
+  const int p(X.cols()), m(U.cols());
   const MatrixXd ones = MatrixXd::Ones(m, 1);
 
   const MatrixXd aPb_0 = aHinvb(A, B, U, EV);
@@ -562,7 +558,7 @@ Rcpp::List ml_est(double lambda, MatrixXd Y, MatrixXd X, MatrixXd U, MatrixXd D,
                   MatrixXd K, double logXtX, double conv_param = 1e-06, int count_max = 15,
                   double bounds1 = 1e-06, double bounds2 = 1e06, bool REML = true){
 
-  const int n(Y.rows()), c(Y.cols()), p(X.cols()), m(Z.cols()), ucol(U.cols());
+  const int n(Y.rows()), p(X.cols()), ucol(U.cols());
 
   // Set initial values and prepare empty boxes.
   int count = 0;
@@ -602,9 +598,9 @@ Rcpp::List ml_est(double lambda, MatrixXd Y, MatrixXd X, MatrixXd U, MatrixXd D,
 
 
     // Calculate log-likelihood, score and hessian ###
-    double l = llik(n, p, logH, yPy, logXtX, logXtHinvX, REML = REML);
-    double l1 = score_func(n, p, tr_HinvG, yPy, yPGPy, tr_PG, REML = REML);
-    double l2 = hess_func(n, p, tr_HinvG2, yPy, yPGPy, yPGPGPy, tr_PG2, REML = REML);
+    double l = llik(n, p, logH, yPy, logXtX, logXtHinvX, REML);
+    double l1 = score_func(n, p, tr_HinvG, yPy, yPGPy, tr_PG, REML);
+    double l2 = hess_func(n, p, tr_HinvG2, yPy, yPGPy, yPGPGPy, tr_PG2, REML);
 
     ls[count] = l;
     l1s[count] = l1;
@@ -644,8 +640,7 @@ Rcpp::List ml_est(double lambda, MatrixXd Y, MatrixXd X, MatrixXd U, MatrixXd D,
 
 
 // The start of the output functions
-//' Calculate aHinvb
-//' @export
+// Calculate aHinvb
 // [[Rcpp::export]]
 Rcpp::List aHinvb_out(Rcpp::NumericMatrix a, Rcpp::NumericMatrix b,
                       Rcpp::NumericMatrix u, Rcpp::NumericMatrix ev)
@@ -655,7 +650,6 @@ Rcpp::List aHinvb_out(Rcpp::NumericMatrix a, Rcpp::NumericMatrix b,
   const MapMat U = Rcpp::as<MapMat>(u);
   const MapMat EV = Rcpp::as<MapMat>(ev);
 
-  const int n(A.rows()), m1(A.cols()), m2(B.cols());
   MatrixXd va = U.adjoint() * A;
   MatrixXd vb = U.adjoint() * B;
 
@@ -672,8 +666,8 @@ Rcpp::List aHinvb_out(Rcpp::NumericMatrix a, Rcpp::NumericMatrix b,
                             Rcpp::Named("aH3b") = aH3b);
 }
 
-//' Calculate aPb, aPPb, aPPPPb, tr(P), tr(PP) (and P)
-//' @export
+// Calculate aPb, aPPb, aPPPPb, tr(P), tr(PP) (and P)
+//
 // [[Rcpp::export]]
 Rcpp::List aPb_series_out(Rcpp::NumericMatrix a, Rcpp::NumericMatrix b,
                           Rcpp::NumericMatrix u, Rcpp::NumericMatrix ev,
@@ -686,7 +680,7 @@ Rcpp::List aPb_series_out(Rcpp::NumericMatrix a, Rcpp::NumericMatrix b,
   const MapMat X = Rcpp::as<MapMat>(x);
   // const MapMat H = Rcpp::as<MapMat>(h);
 
-  const int n(A.rows()), m1(A.cols()), m2(B.cols()), p(X.cols()), m(U.cols());
+  const int p(X.cols()), m(U.cols());
   const MatrixXd ones = MatrixXd::Ones(m, 1);
 
   const MatrixXd aPb_0 = aHinvb(A, B, U, EV);
@@ -825,8 +819,8 @@ Rcpp::List aPb_series_out(Rcpp::NumericMatrix a, Rcpp::NumericMatrix b,
 }
 
 
-//' Calculate log-likelihood
-//' @export
+// Calculate log-likelihood
+//
 // [[Rcpp::export]]
 double llik_out(int n, int p, double logH, double yPy, double logXtX, double logXtHinvX, bool REML = true){
   double pi = 3.14159;
@@ -843,7 +837,7 @@ double llik_out(int n, int p, double logH, double yPy, double logXtX, double log
   return(l);
 }
 
-//' Calculate the score function
+// Calculate the score function
 // [[Rcpp::export]]
 double score_func_out(int n, int p, double tr_HinvG, double yPy,
                       double yPGPy, double tr_PG, bool REML = true){
@@ -858,9 +852,9 @@ double score_func_out(int n, int p, double tr_HinvG, double yPy,
   return(l1);
 }
 
-//' Calculate the score function
-//' @export
-//'
+// Calculate the score function
+//
+//
 // [[Rcpp::export]]
 double hess_func_out(int n, int p, double tr_HinvG2, double yPy, double yPGPy,
                      double yPGPGPy, double tr_PG2, bool REML = true){
@@ -877,8 +871,8 @@ double hess_func_out(int n, int p, double tr_HinvG2, double yPy, double yPGPy,
 
 
 
-//' Maximize likelihood when given lambda_0
-//' @export
+// Maximize likelihood when given lambda_0
+//
 // [[Rcpp::export]]
 Rcpp::List ml_est_out(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix x,
                       Rcpp::NumericMatrix u, Rcpp::NumericMatrix delta, Rcpp::NumericMatrix z,
@@ -889,10 +883,8 @@ Rcpp::List ml_est_out(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix 
   const MapMat X = Rcpp::as<MapMat>(x);
   const MapMat U = Rcpp::as<MapMat>(u);
   const MapMat D = Rcpp::as<MapMat>(delta);
-  const MapMat Z = Rcpp::as<MapMat>(z);
-  const MapMat K = Rcpp::as<MapMat>(k);
 
-  const int n(Y.rows()), c(Y.cols()), p(X.cols()), m(Z.cols()), ucol(U.cols());
+  const int n(Y.rows()), p(X.cols()), ucol(U.cols());
 
   // Set initial values and prepare empty boxes.
   int count = 0;
@@ -932,9 +924,9 @@ Rcpp::List ml_est_out(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix 
 
 
     // Calculate log-likelihood, score and hessian ###
-    double l = llik(n, p, logH, yPy, logXtX, logXtHinvX, REML = REML);
-    double l1 = score_func(n, p, tr_HinvG, yPy, yPGPy, tr_PG, REML = REML);
-    double l2 = hess_func(n, p, tr_HinvG2, yPy, yPGPy, yPGPGPy, tr_PG2, REML = REML);
+    double l = llik(n, p, logH, yPy, logXtX, logXtHinvX, REML);
+    double l1 = score_func(n, p, tr_HinvG, yPy, yPGPy, tr_PG, REML);
+    double l2 = hess_func(n, p, tr_HinvG2, yPy, yPGPy, yPGPGPy, tr_PG2, REML);
 
     ls[count] = l;
     l1s[count] = l1;
@@ -971,8 +963,8 @@ Rcpp::List ml_est_out(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix 
                             Rcpp::Named("count") = Rcpp::wrap(count));
 }
 
-//' Eigen decomposition via Rcpp
-//' @export
+// Eigen decomposition via Rcpp
+//
 // [[Rcpp::export]]
 Rcpp::List eigen_out(Rcpp::NumericMatrix a, bool symmetric = true, bool ainv = false){
   const MapMat A = Rcpp::as<MapMat>(a);
@@ -1001,8 +993,8 @@ Rcpp::List eigen_out(Rcpp::NumericMatrix a, bool symmetric = true, bool ainv = f
 
 
 
-//' Calculate some values when given lambda
-//' @export
+// Calculate some values when given lambda
+//
 // [[Rcpp::export]]
 Rcpp::List ml_one_step(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix x,
                        Rcpp::NumericMatrix u, Rcpp::NumericMatrix delta, Rcpp::NumericMatrix z,
@@ -1018,7 +1010,7 @@ Rcpp::List ml_one_step(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix
   const MapMat Z = Rcpp::as<MapMat>(z);
   const MapMat K = Rcpp::as<MapMat>(k);
 
-  const int n(Y.rows()), c(Y.cols()), p(X.cols()), m(Z.cols()), ucol(U.cols());
+  const int n(Y.rows()), p(X.cols()), ucol(U.cols());
 
 
   MatrixXd EV = lambda * D + MatrixXd::Ones(ucol, 1);
@@ -1038,7 +1030,7 @@ Rcpp::List ml_one_step(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix
 
 
   // Calculate log-likelihood, score and Hinv2 ###
-  double LL = llik(n, p, logH, yPy, logXtX, logXtHinvX, REML = REML);
+  double LL = llik(n, p, logH, yPy, logXtX, logXtHinvX, REML);
 
   MatrixXd EV2 = EV.transpose();
   MatrixXd UdivEV2 = elediv(U, EV2, 2);
@@ -1122,8 +1114,8 @@ Rcpp::List ml_one_step(double lambda, Rcpp::NumericMatrix y, Rcpp::NumericMatrix
 
 
 
-//' The spectral decomposition of G matrix (cholesky decomposition)
-//' @export
+// The spectral decomposition of G matrix (cholesky decomposition)
+//
 // [[Rcpp::export]]
 Rcpp::List spectralG_cholesky(Rcpp::NumericMatrix zbt, Rcpp::NumericMatrix x,
                               bool return_G = true, bool return_SGS = false){
@@ -1205,8 +1197,8 @@ Rcpp::List spectralG_cholesky(Rcpp::NumericMatrix zbt, Rcpp::NumericMatrix x,
 
 
 
-//' The spectral decomposition of G matrix (eigen decomposition)
-//' @export
+// The spectral decomposition of G matrix (eigen decomposition)
+//
 // [[Rcpp::export]]
 Rcpp::List spectralG_eigen(Rcpp::NumericMatrix zkzt, Rcpp::NumericMatrix x,
                            bool return_G = true, bool return_SGS = false){
@@ -1276,8 +1268,8 @@ Rcpp::List spectralG_eigen(Rcpp::NumericMatrix zkzt, Rcpp::NumericMatrix x,
 
 
 
-//' Calculate Vu, Ve, LL and Hinv when given lambda
-//' @export
+// Calculate Vu, Ve, LL and Hinv when given lambda
+//
 // [[Rcpp::export]]
 Rcpp::List EMM2_last_step(double lambda, Rcpp::NumericMatrix y,
                           Rcpp::NumericMatrix x, Rcpp::NumericMatrix u,
@@ -1371,14 +1363,13 @@ Rcpp::List EMM2_last_step(double lambda, Rcpp::NumericMatrix y,
 }
 
 
-//' The kernel function of EM3.cpp
-//' @export
+// The kernel function of EM3.cpp
+//
 // [[Rcpp::export]]
 Rcpp::List EM3_kernel(Rcpp::NumericMatrix y0, Rcpp::NumericMatrix X0, Rcpp::NumericMatrix ZKZt0,
                       Rcpp::NumericMatrix S0, Rcpp::NumericMatrix spI0,
                       double n, double p, bool REML = true){
   MapMat y = Rcpp::as<MapMat>(y0);
-  MapMat X = Rcpp::as<MapMat>(X0);
   MapMat ZKZt = Rcpp::as<MapMat>(ZKZt0);
   MapMat S = Rcpp::as<MapMat>(S0);
   MapMat spI = Rcpp::as<MapMat>(spI0);
@@ -1410,8 +1401,8 @@ Rcpp::List EM3_kernel(Rcpp::NumericMatrix y0, Rcpp::NumericMatrix X0, Rcpp::Nume
 }
 
 
-//' Calculate P or Hinv, and log(P) or log(Hinv)
-//' @export
+// Calculate P or Hinv, and log(P) or log(Hinv)
+//
 // [[Rcpp::export]]
 Rcpp::List P_calc(double lambda, Rcpp::List Ws, Rcpp::List Gammas,
                   Rcpp::NumericMatrix u, Rcpp::NumericMatrix d,
@@ -1419,9 +1410,7 @@ Rcpp::List P_calc(double lambda, Rcpp::List Ws, Rcpp::List Gammas,
   const MapMat U = Rcpp::as<MapMat>(u);
   const MapMat D = Rcpp::as<MapMat>(d);
 
-  double pi = 3.14159;
   const int n(U.rows()), n_p(U.cols());
-  const int p = n - n_p;
   MatrixXd ones = MatrixXd::Ones(n, 1);
   MatrixXd ones1 = MatrixXd::Ones(n, 1);
   MatrixXd ones2 = MatrixXd::Ones(n_p, 1);
@@ -1476,8 +1465,8 @@ Rcpp::List P_calc(double lambda, Rcpp::List Ws, Rcpp::List Gammas,
 }
 
 
-//' Calculate restricted log likelihood using P
-//' @export
+// Calculate restricted log likelihood using P
+//
 // [[Rcpp::export]]
 double llik_REML(int n, int p, double yPy, double lnP){
   const double pi = 3.14159;
@@ -1485,8 +1474,8 @@ double llik_REML(int n, int p, double yPy, double lnP){
 }
 
 
-//' Calculate log likelihood using P
-//' @export
+// Calculate log likelihood using P
+//
 // [[Rcpp::export]]
 double llik_ML(int n, double yPy, double lnHinv){
   const double pi = 3.14159;
@@ -1494,8 +1483,8 @@ double llik_ML(int n, double yPy, double lnHinv){
 }
 
 
-//' Calculate first derivariate of the log-likelihood for score test
-//' @export
+// Calculate first derivariate of the log-likelihood for score test
+//
 // [[Rcpp::export]]
 Rcpp::NumericVector score_l1(Rcpp::NumericMatrix y, Rcpp::NumericMatrix p0,
                              Rcpp::List Gs, int lg){
@@ -1518,8 +1507,8 @@ Rcpp::NumericVector score_l1(Rcpp::NumericMatrix y, Rcpp::NumericMatrix p0,
 
 
 
-//' Calculate first derivariate of the log-likelihood for score test (for linear kernel)
-//' @export
+// Calculate first derivariate of the log-likelihood for score test (for linear kernel)
+//
 // [[Rcpp::export]]
 Rcpp::NumericVector score_l1_linker(Rcpp::NumericMatrix y, Rcpp::NumericMatrix p0,
                                     Rcpp::List Ws, Rcpp::List Gammas, int lw){
@@ -1544,8 +1533,8 @@ Rcpp::NumericVector score_l1_linker(Rcpp::NumericMatrix y, Rcpp::NumericMatrix p
 
 
 
-//' Calculate first derivariate of the log-likelihood for score test (for linear kernel)
-//' @export
+// Calculate first derivariate of the log-likelihood for score test (for linear kernel)
+//
 // [[Rcpp::export]]
 Rcpp::NumericVector score_l1_linker_diag(Rcpp::NumericMatrix y, Rcpp::NumericMatrix p0,
                                          Rcpp::List W2s, int lw){
@@ -1569,8 +1558,8 @@ Rcpp::NumericVector score_l1_linker_diag(Rcpp::NumericMatrix y, Rcpp::NumericMat
 
 
 
-//' Calculate fisher information of the log-likelihood for score test
-//' @export
+// Calculate fisher information of the log-likelihood for score test
+//
 // [[Rcpp::export]]
 Rcpp::NumericMatrix score_fisher(Rcpp::NumericMatrix p0, Rcpp::List Gs_all,
                                  int nuisance_no, int lg_all){
@@ -1607,8 +1596,8 @@ Rcpp::NumericMatrix score_fisher(Rcpp::NumericMatrix p0, Rcpp::List Gs_all,
 
 
 
-//' Calculate fisher information of the log-likelihood for score test (for linear kernel)
-//' @export
+// Calculate fisher information of the log-likelihood for score test (for linear kernel)
+//
 // [[Rcpp::export]]
 Rcpp::NumericMatrix score_fisher_linker(Rcpp::NumericMatrix p0, Rcpp::List Gs_all,
                                         Rcpp::List Gammas, int nuisance_no, int lw_all){
@@ -1673,8 +1662,8 @@ Rcpp::NumericMatrix score_fisher_linker(Rcpp::NumericMatrix p0, Rcpp::List Gs_al
 
 
 
-//' Calculate fisher information of the log-likelihood for score test (for linear kernel)
-//' @export
+// Calculate fisher information of the log-likelihood for score test (for linear kernel)
+//
 // [[Rcpp::export]]
 Rcpp::NumericMatrix score_fisher_linker_diag(Rcpp::NumericMatrix p0, Rcpp::List Gs_all,
                                              int nuisance_no, int lw_all){
@@ -1734,8 +1723,8 @@ Rcpp::NumericMatrix score_fisher_linker_diag(Rcpp::NumericMatrix p0, Rcpp::List 
 
 
 
-//' Calculate statistic of GWAS which follows Beta distribution
-//' @export
+// Calculate statistic of GWAS which follows Beta distribution
+//
 // [[Rcpp::export]]
 double GWAS_F_test(Rcpp::NumericMatrix y, Rcpp::NumericMatrix x,
                    Rcpp::NumericMatrix hinv, int v1, int v2, int p){

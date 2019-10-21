@@ -17,7 +17,6 @@
 #'
 #' @return If save.variable is FALSE, NULL. If TRUE, the first part of your data will be returned.
 #'
-#' @export
 #'
 See <- function(data, fh = TRUE, fl = TRUE, rown = 6, coln = 6,
                 rowst = 1, colst = 1, narray = 2, drop = FALSE,
@@ -164,7 +163,6 @@ See <- function(data, fh = TRUE, fl = TRUE, rown = 6, coln = 6,
 #' \item{$before}{Minor allele frequencies of the original marker genotype.}
 #' \item{$after}{Minor allele frequencies of the modified marker genotype.}
 #'}
-#' @export
 #'
 MAF.cut <- function(x.0, map.0 = NULL, min.MAF = 0.05, max.MS = 0.05, return.MAF = FALSE){
   x.unique <- sort(unique(c(x.0)), decreasing = FALSE)

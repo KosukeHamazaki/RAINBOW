@@ -45,7 +45,6 @@
 #' \item{$max.trues}{Max of the -log10(p) values of the region near causals.}
 #' }
 #'
-#' @export
 #'
 #'
 SS_gwas <- function(res, x, map.x, qtn.candidate, gene.set = NULL, n.top.false.block = 10,
@@ -201,7 +200,7 @@ SS_gwas <- function(res, x, map.x, qtn.candidate, gene.set = NULL, n.top.false.b
     }
     names(max.trues) <- names(which.max.trues) <- paste0("qtn_", 1:True.num)
     mean.false <- sapply(n.top.false.block, function(x) mean(false.block.log10ps[1:x], na.rm = TRUE))
-    names(mean.false) <- n.top.false
+    names(mean.false) <- n.top.false.block
 
     haplo.name <- NULL
 
@@ -473,7 +472,7 @@ SS_gwas <- function(res, x, map.x, qtn.candidate, gene.set = NULL, n.top.false.b
     }
     names(max.trues) <- names(which.max.trues) <- paste0("haplo_", 1:True.num)
     mean.false <- sapply(n.top.false.block, function(x) mean(false.block.log10ps[1:x], na.rm = TRUE))
-    names(mean.false) <- n.top.false
+    names(mean.false) <- n.top.false.block
 
     FDR <- FP / (FP + TP)
     FPR <- FP / (FP + TN)

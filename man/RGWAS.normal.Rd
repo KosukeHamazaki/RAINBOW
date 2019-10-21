@@ -194,7 +194,6 @@ str(ZETA)
 normal.res <- RGWAS.normal(pheno = pheno.GWAS, geno = geno.GWAS,
                            ZETA = ZETA, n.PC = 4, P3D = TRUE)
 See(normal.res$D)  ### Column 4 contains -log10(p) values for markers
-
 }
 \references{
 Kennedy, B.W., Quinton, M. and van Arendonk, J.A. (1992) Estimation of effects of single genes on quantitative traits. J Anim Sci. 70(7): 2000-2012.

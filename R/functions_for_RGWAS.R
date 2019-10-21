@@ -3,7 +3,7 @@
 #'
 #' @return show welcome messages
 #'
-#' @export
+#'
 #'
 # welcome_to_RGWAS <- function(){
 #   cat("#-------------------------------------------------------------------------------------------------# \n")
@@ -53,7 +53,7 @@ welcome_to_RGWAS <- function(){
 #'
 #' Storey, J.D. and Tibshirani, R. (2003) Statistical significance for genomewide studies. Proc Natl Acad Sci. 100(16): 9440-9445.
 #'
-#' @export
+#'
 #'
 CalcThreshold <- function(input, sig.level = 0.05, method = "BH") {
   # define a function
@@ -175,14 +175,13 @@ CalcThreshold <- function(input, sig.level = 0.05, method = "BH") {
 
 #' Function to generate design matrix (Z)
 #'
-#' @importFrom Matrix sparseMatrix
 #'
 #' @param pheno.labels A vector of genotype (line; accesion; variety) names which correpond to phenotypic values.
 #' @param geno.names  A vector of genotype (line; accesion; variety) names for marker genotype data (duplication is not recommended).
 #'
 #' @return Z of \eqn{y = X\beta + Zu + e}. Design matrix, which is useful for GS or GWAS.
 #'
-#' @export
+#'
 #'
 design.Z <- function(pheno.labels, geno.names) {
   pheno.labels <- as.character(pheno.labels)
@@ -232,7 +231,7 @@ design.Z <- function(pheno.labels, geno.names) {
 #' \item{$geno.GWAS}{GWAS formatted marker genotype data.}
 #' }
 #'
-#' @export
+#'
 #'
 modify.data <- function(pheno.mat, geno.mat, pheno.labels = NULL, geno.names = NULL, map = NULL,
                         return.ZETA = TRUE, return.GWAS.format = FALSE) {
@@ -306,9 +305,9 @@ modify.data <- function(pheno.mat, geno.mat, pheno.labels = NULL, geno.names = N
 #' @param map Data frame with the marker names in the first column. The second and third columns contain the chromosome and map position.
 #' @return Cumulative position (beyond chromosome) will be returned.
 #'
-#' @export
 #'
-cumsum.pos <- function(map) {
+#'
+cumsumPos <- function(map) {
   marker <- as.character(map[, 1])
   chr <- map[, 2]
   pos <- map[, 3]
@@ -343,7 +342,7 @@ cumsum.pos <- function(map) {
 #'
 #' @return Map for gene set.
 #'
-#' @export
+#'
 #'
 genesetmap <- function(map, gene.set, cumulative = FALSE) {
   marker <- as.character(map[, 1])
@@ -353,7 +352,7 @@ genesetmap <- function(map, gene.set, cumulative = FALSE) {
   chr.tab <- table(chr)
   chr.max <- max(chr)
   chr.cum <- cumsum(chr.tab)
-  cum.pos <- cumsum.pos(map)
+  cum.pos <- cumsumPos(map)
 
   gene.names <- as.character(gene.set[, 1])
   mark.id <- as.character(gene.set[, 2])
@@ -413,7 +412,7 @@ genesetmap <- function(map, gene.set, cumulative = FALSE) {
 #'
 #' @return draw manhttan plot
 #'
-#' @export
+#'
 #'
 manhattan <- function(input, sig.level = 0.05, method.thres = "BH",
                       y.max = NULL, cex.lab = 1, lwd.thres = 1,
@@ -475,7 +474,7 @@ manhattan <- function(input, sig.level = 0.05, method.thres = "BH",
 #'
 #' @return draw manhttan plot
 #'
-#' @export
+#'
 #'
 
 manhattan.plus <- function(input, checks, plot.col1 = c("dark blue", "cornflowerblue"),
@@ -522,16 +521,15 @@ manhattan.plus <- function(input, checks, plot.col1 = c("dark blue", "cornflower
 #' @param cum.pos cumulative position (over chromosomes) of each marker
 #' @param lwd.thres The line width for the threshold.
 #' @param cex.lab The font size of the labels.
-#' @param cex.axis.x The font size of the x axis.
-#' @param cex.axis.y The font size of the y axis.
+#' @param cex.axis The font size of the axes.
 #'
 #' @return draw manhttan plot
 #'
-#' @export
+#'
 #'
 manhattan2 <- function(input, sig.level = 0.05, method.thres = "BH", plot.col2 = 1,
                        plot.type = "p", plot.pch = 16, cum.pos = NULL, lwd.thres = 1,
-                       cex.lab = 1, cex.axis.x = 1, cex.axis.y = 1) {
+                       cex.lab = 1, cex.axis = 1) {
   input <- input[!is.na(input[, 4]), , drop = FALSE]
   chr <- input[, 2]
   pos <- input[, 3]
@@ -553,17 +551,16 @@ manhattan2 <- function(input, sig.level = 0.05, method.thres = "BH", plot.col2 =
   }
   plot(cum.pos, input[, 4], col = chr + plot.col2, type = plot.type,
        pch = plot.pch, xlab = "Position (bp)", ylab = "-log10(p)",
-       cex.lab = cex.lab, cex.axis.x = cex.axis.x, cex.axis.y = cex.axis.y)
+       cex.lab = cex.lab, cex.axis = cex.axis)
 
   threshold <- try(CalcThreshold(input, sig.level = sig.level, method = method.thres), silent = TRUE)
   if((class(threshold) != "try-error") & (!is.na(threshold))){
-    lines(x = c(0, x.max), y = rep(threshold, 2), lty = 2, lwd = lwd.thres)
+    lines(x = c(0, max(cum.pos)), y = rep(threshold, 2), lty = 2, lwd = lwd.thres)
   }
 }
 
 #' Draw the effects of epistasis (3d plot and 2d plot)
 #'
-#' @import rgl
 #'
 #' @param input Data frame of GWAS results where the first column is the marker names,
 #' the second and third column is the chromosome amd map position, and the forth column is -log10(p) for each marker.
@@ -577,7 +574,7 @@ manhattan2 <- function(input, sig.level = 0.05, method.thres = "BH", plot.col2 =
 #'
 #' @return draw 3d plot and 2d plot to show epistatic effects
 #'
-#' @export
+#'
 #'
 
 manhattan3 <- function(input, cum.pos, plot.epi.3d = TRUE,
@@ -660,7 +657,7 @@ manhattan3 <- function(input, cum.pos, plot.epi.3d = TRUE,
 #'
 #' @return draw qq plot
 #'
-#' @export
+#'
 #'
 qq <- function(scores) {
   remove <- which(scores == 0)
@@ -683,7 +680,6 @@ qq <- function(scores) {
 #'
 #' @description Calculate -log10(p) of each SNP by the Wald test.
 #'
-#' @importFrom Matrix rankMatrix
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -721,7 +717,7 @@ qq <- function(scores) {
 #' Zhang, Z. et al. (2010) Mixed linear model approach adapted for genome-wide
 #'  association studies. Nat Genet. 42(4): 355-360.
 #'
-#' @export
+#'
 #'
 score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE, optimizer = "nlminb",
                        eigen.G = NULL,  min.MAF = 0.02, count = TRUE) {
@@ -769,7 +765,7 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE, optimizer = 
 
       if (!P3D) {
         Xi <- make.full(Xi)
-        if(length(ZETA) > 1){
+        if(length(ZETA.now) > 1){
           EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G, optimizer = optimizer,
                              tol = NULL, n.thres = 450, REML = TRUE, pred = FALSE)
         }else{
@@ -800,7 +796,6 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE, optimizer = 
 #'
 #' @description Calculate -log10(p) of each SNP by the Wald test.
 #'
-#' @importFrom Matrix rankMatrix
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -839,7 +834,7 @@ score.calc <- function(M.now, ZETA.now, y, X.now, Hinv, P3D = TRUE, optimizer = 
 #' Zhang, Z. et al. (2010) Mixed linear model approach adapted for genome-wide
 #'  association studies. Nat Genet. 42(4): 355-360.
 #'
-#' @export
+#'
 #'
 score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRUE, optimizer = "nlminb",
                           eigen.G = NULL,  min.MAF = 0.02, count = TRUE) {
@@ -869,7 +864,7 @@ score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRU
 
       if (!P3D) {
         Xi <- make.full(Xi)
-        if(length(ZETA) > 1){
+        if(length(ZETA.now) > 1){
           EMM.res <- EM3.cpp(y = yi, X0 = Xi, ZETA = ZETA.now, eigen.G = eigen.G, optimizer = optimizer,
                              tol = NULL, n.thres = 450, REML = TRUE, pred = FALSE)
         }else{
@@ -912,7 +907,7 @@ score.calc.MC <- function(M.now, ZETA.now, y, X.now, Hinv, n.core = 2, P3D = TRU
 #'
 #' @return a full-rank matrix
 #'
-#' @export
+#'
 #'
 make.full <- function(X) {
   svd.X <- svd(X)
@@ -940,8 +935,6 @@ make.full <- function(X) {
 #'
 #' follows the chi-square distribution.
 #'
-#' @importFrom Matrix rankMatrix
-#' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -1014,7 +1007,7 @@ make.full <- function(X) {
 #' Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based
 #'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
-#' @export
+#'
 #'
 score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eigen.G = NULL, optimizer = "nlminb",
                           map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
@@ -1491,8 +1484,6 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 #'
 #' follows the chi-square distribution.
 #'
-#' @importFrom Matrix rankMatrix
-#' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -1566,7 +1557,7 @@ score.calc.LR <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eige
 #' Lippert, C. et al. (2014) Greater power and computational efficiency for kernel-based
 #'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
-#' @export
+#'
 #'
 score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, eigen.G = NULL, n.core = 2,
                              map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
@@ -2036,8 +2027,6 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
 #' without solving the multi-kernel mixed model for each SNP-set.
 #' Then it performs the score test by using the fact that the score statistic follows the chi-square distribution.
 #'
-#' @importFrom Matrix rankMatrix
-#' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -2097,7 +2086,7 @@ score.calc.LR.MC <- function(M.now, y, X.now, ZETA.now, LL0, eigen.SGS = NULL, e
 #'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
 #'
-#' @export
+#'
 #'
 score.calc.score <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0,
                              map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
@@ -2455,8 +2444,6 @@ score.calc.score <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0,
 #' without solving the multi-kernel mixed model for each SNP-set.
 #' Then it performs the score test by using the fact that the score statistic follows the chi-square distribution.
 #'
-#' @importFrom Matrix rankMatrix
-#' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -2517,7 +2504,7 @@ score.calc.score <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0,
 #'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
 #'
-#' @export
+#'
 #'
 score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.core = 2,
                                 map, kernel.method = "linear", kernel.h = "tuned", haplotype = TRUE, num.hap = NULL,
@@ -2866,8 +2853,6 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 
 #' Calculate -log10(p) of epistatic effects by LR test
 #'
-#' @importFrom Matrix rankMatrix
-#' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -2930,7 +2915,7 @@ score.calc.score.MC <- function(M.now, y, X.now, ZETA.now, LL0, Gu, Ge, P0, n.co
 #'
 #' Jiang, Y. and Reif, J.C. (2015) Modeling epistasis in genomic selection. Genetics. 201(2): 759-768.
 #'
-#' @export
+#'
 #'
 score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL, eigen.G = NULL, optimizer = "nlminb",
                                     map, haplotype = TRUE, num.hap = NULL, window.size.half = 5, window.slide = 1,
@@ -3460,8 +3445,6 @@ score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
 
 #' Calculate -log10(p) of epistatic effects with score test
 #'
-#' @importFrom Matrix rankMatrix
-#' @importFrom cluster pam
 #'
 #' @param M.now n.sample x n.mark genotype matrix where n.sample is sample size and n.mark is the number of markers.
 #' @param ZETA.now A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
@@ -3510,7 +3493,7 @@ score.calc.epistasis.LR <- function(M.now, y, X.now, ZETA.now, eigen.SGS = NULL,
 #'
 #' Jiang, Y. and Reif, J.C. (2015) Modeling epistasis in genomic selection. Genetics. 201(2): 759-768.
 #'
-#' @export
+#'
 #'
 score.calc.epistasis.score <- function(M.now, y, X.now, ZETA.now, Gu, Ge, P0,
                                        map, haplotype = TRUE, num.hap = NULL, window.size.half = 5, window.slide = 1,

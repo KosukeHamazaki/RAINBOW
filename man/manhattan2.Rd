@@ -6,7 +6,7 @@
 \usage{
 manhattan2(input, sig.level = 0.05, method.thres = "BH",
   plot.col2 = 1, plot.type = "p", plot.pch = 16, cum.pos = NULL,
-  lwd.thres = 1, cex.lab = 1, cex.axis.x = 1, cex.axis.y = 1)
+  lwd.thres = 1, cex.lab = 1, cex.axis = 1)
 }
 \arguments{
 \item{input}{Data frame of GWAS results where the first column is the marker names,
@@ -29,9 +29,7 @@ the second and third column is the chromosome amd map position, and the forth co
 
 \item{cex.lab}{The font size of the labels.}
 
-\item{cex.axis.x}{The font size of the x axis.}
-
-\item{cex.axis.y}{The font size of the y axis.}
+\item{cex.axis}{The font size of the axes.}
 }
 \value{
 draw manhttan plot

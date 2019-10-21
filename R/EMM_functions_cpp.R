@@ -31,7 +31,7 @@
 #' \item{$theta}{eigen values of sGS.}
 #' }
 #'
-#' @export
+#'
 #'
 spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TRUE,
                           return.SGS = FALSE, spectral.method = NULL,
@@ -223,7 +223,6 @@ spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TR
 #' @description This function solves the single-kernel linear mixed effects model by GEMMA
 #' (genome wide efficient mixed model association; Zhou et al., 2012) approach.
 #'
-#' @importFrom parallel mclapply
 #'
 #' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
 #' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
@@ -285,7 +284,7 @@ spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TR
 #'  for association studies. Nat Genet. 44(7): 821-824.
 #'
 #'
-#' @export
+#'
 #'
 EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range = c(1e-04, 1e02),
                      init.one = 0.5, conv.param = 1e-06, count.max = 15, bounds = c(1e-06, 1e06),
@@ -456,7 +455,7 @@ EMM1.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, lam.len = 4, init.range 
 #'  in Model Organism Association Mapping. Genetics. 178(3): 1709-1723.
 #'
 #'
-#' @export
+#'
 EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = NULL, optimizer = "nlminb",
                      traceInside = 0, REML = TRUE, bounds = c(1e-09, 1e+09), SE = FALSE, return.Hinv = FALSE){
 
@@ -700,50 +699,10 @@ EMM2.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = 
 #'  for association studies. Nat Genet. 44(7): 821-824.
 #'
 #'
-#' @examples
-#' ### Import RAINBOW
-#' require(RAINBOW)
-#'
-#' ### Load example datasets
-#' data("Rice_Zhao_etal")
-#'
-#' ### View each dataset
-#' See(Rice_geno_score)
-#' See(Rice_geno_map)
-#' See(Rice_pheno)
-#'
-#' ### Select one trait for example
-#' trait.name <- "Flowering.time.at.Arkansas"
-#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
-#'
-#' ### Remove SNPs whose MAF <= 0.05
-#' x.0 <- t(Rice_geno_score)
-#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
-#' x <- MAF.cut.res$x
-#' map <- MAF.cut.res$map
+#' @example examples/EMM.cpp_example.R
 #'
 #'
-#' ### Estimate genetic relationship matrix
-#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
 #'
-#' ### Modify data
-#' modify.res <- modify.data(pheno.mat = y, geno.mat = x, return.ZETA = TRUE)
-#' pheno.mat <- modify.res$pheno.modi
-#' ZETA <- modify.res$ZETA
-#'
-#'
-#' ### Solve linear mixed effects model
-#' EMM.res <- EMM.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
-#' (Vu <- EMM.res$Vu)   ### estimated genetic variance
-#' (Ve <- EMM.res$Ve)   ### estimated residual variance
-#' (herit <- Vu / (Vu + Ve))   ### genomic heritability
-#'
-#' (beta <- EMM.res$beta)   ### Here, this is an intercept.
-#' u <- EMM.res$u   ### estimated genotypic values
-#' See(u)
-#'
-#'
-#' @export
 #'
 EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres = 450, reestimation = FALSE,
                     lam.len = 4, init.range = c(1e-06, 1e02), init.one = 0.5, conv.param = 1e-06,
@@ -782,7 +741,6 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #'
 #' where \eqn{Var[y] = \sum _{l=1} ^ {L} Z _ {l} K _ {l} Z _ {l}' \sigma _ {l} ^ 2 + I \sigma _ {e} ^ {2}}.
 #'
-#' @importFrom Matrix .bdiag
 #'
 #' @param y \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
 #' @param X0 \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
@@ -836,55 +794,10 @@ EMM.cpp <- function(y, X = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, n.thres
 #'  for association studies. Nat Genet. 44(7): 821-824.
 #'
 #'
-#' @examples
-#' ### Import RAINBOW
-#' require(RAINBOW)
-#'
-#' ### Load example datasets
-#' data("Rice_Zhao_etal")
-#'
-#' ### View each dataset
-#' See(Rice_geno_score)
-#' See(Rice_geno_map)
-#' See(Rice_pheno)
-#'
-#' ### Select one trait for example
-#' trait.name <- "Flowering.time.at.Arkansas"
-#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
-#'
-#' ### Remove SNPs whose MAF <= 0.05
-#' x.0 <- t(Rice_geno_score)
-#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
-#' x <- MAF.cut.res$x
-#' map <- MAF.cut.res$map
+#' @example examples/EM3.cpp_example.R
 #'
 #'
-#' ### Estimate additive genetic relationship matrix & epistatic relationship matrix
-#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
-#' K.AA <- K.A * K.A   ### additive x additive epistatic effects
 #'
-#'
-#' ### Modify data
-#' Z <- design.Z(pheno.labels = rownames(y),
-#'               geno.names = rownames(K.A))  ### design matrix for random effects
-#' pheno.mat <- y[rownames(Z), , drop = FALSE]
-#' ZETA <- list(A = list(Z = Z, K = K.A),
-#'              AA = list(Z = Z, K = K.AA))
-#'
-#'
-#' ### Solve multi-kernel linear mixed effects model (2 random efects)
-#' EM3.res <- EM3.cpp(y = pheno.mat, X = NULL, ZETA = ZETA)
-#' (Vu <- EM3.res$Vu)   ### estimated genetic variance
-#' (Ve <- EM3.res$Ve)   ### estimated residual variance
-#' (weights <- EM3.res$weights)   ### estimated proportion of two genetic variances
-#' (herit <- Vu * weights / (Vu + Ve))   ### genomic heritability (additive, additive x additive)
-#'
-#' (beta <- EM3.res$beta)   ### Here, this is an intercept.
-#' u <- EM3.res$u   ### estimated genotypic values (additive, additive x additive)
-#' See(u)
-#'
-#'
-#' @export
 #'
 EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol = NULL,
                      optimizer = "nlminb", traceInside = 0, n.thres = 450, REML = TRUE, pred = TRUE){
@@ -1135,7 +1048,6 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #' @description This function solves multi-kernel mixed model using fastlmm.snpset approach (Lippert et al., 2014).
 #' This function can be used only when the kernels other than genomic relationship matrix are linear kernels.
 #'
-#' @importFrom Matrix .bdiag
 #'
 #' @param y0 \eqn{n \times 1} vector. A vector of phenotypic values should be used. NA is allowed.
 #' @param X0 \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
@@ -1200,62 +1112,9 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 #'  association testing of sets of genetic variants. Bioinformatics. 30(22): 3206-3214.
 #'
 #'
-#' @examples
-#' ### Import RAINBOW
-#' require(RAINBOW)
-#'
-#' ### Load example datasets
-#' data("Rice_Zhao_etal")
-#'
-#' ### View each dataset
-#' See(Rice_geno_score)
-#' See(Rice_geno_map)
-#' See(Rice_pheno)
-#'
-#' ### Select one trait for example
-#' trait.name <- "Flowering.time.at.Arkansas"
-#' y <- as.matrix(Rice_pheno[, trait.name, drop = FALSE])
-#'
-#' ### Remove SNPs whose MAF <= 0.05
-#' x.0 <- t(Rice_geno_score)
-#' MAF.cut.res <- MAF.cut(x.0 = x.0, map.0 = Rice_geno_map)
-#' x <- MAF.cut.res$x
-#' map <- MAF.cut.res$map
+#' @example examples/EM3.linker.cpp_example.R
 #'
 #'
-#' ### Estimate additive genetic relationship matrix
-#' K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
-#'
-#'
-#' ### Modify data
-#' Z <- design.Z(pheno.labels = rownames(y),
-#'               geno.names = rownames(K.A))  ### design matrix for random effects
-#' pheno.mat <- y[rownames(Z), , drop = FALSE]
-#' ZETA <- list(A = list(Z = Z, K = K.A))
-#'
-#'
-#' ### Including the additional linear kernel for chromosome 12
-#' chrNo <- 12
-#' W.A <- x[, map$chr == chrNo]    ### marker genotype data of chromosome 12
-#'
-#' Zs0 <- list(A.part = Z)
-#' Ws0 <- list(A.part = W.A)       ### This will be regarded as linear kernel
-#' ### for the variance-covariance matrix of another random effects.
-#'
-#'
-#' ### Solve multi-kernel linear mixed effects model (2 random efects)
-#' EM3.linker.res <- EM3.linker.cpp(y0 = pheno.mat, X0 = NULL, ZETA = ZETA,
-#'                                  Zs0 = Zs0, Ws0 = Ws0)
-#' (Vu <- EM3.linker.res$Vu)   ### estimated genetic variance
-#' (Ve <- EM3.linker.res$Ve)   ### estimated residual variance
-#' (weights <- EM3.linker.res$weights)   ### estimated proportion of two genetic variances
-#' (herit <- Vu * weights / (Vu + Ve))   ### genomic heritability (additive (all chromosomes), additive (chromosome 12))
-#'
-#' (beta <- EM3.linker.res$beta)   ### Here, this is an intercept.
-#' u <- EM3.linker.res$u   ### estimated genotypic values (additive (all chromosomes), additive (chromosome 12))
-#' See(u)
-#'
-#' @export
 #'
 EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
                             Gammas0 = lapply(Ws0, function(x) diag(ncol(x))), gammas.diag = TRUE,
@@ -1481,7 +1340,7 @@ EM3.linker.cpp <- function (y0, X0 = NULL, ZETA = NULL, Zs0 = NULL, Ws0,
 #' @return -log10(p) calculated by score test
 #'
 #'
-#' @export
+#'
 #'
 score.cpp <- function(y, Gs, Gu, Ge, P0, chi0.mixture = 0.5){
   nuisance.no <- 2
@@ -1519,7 +1378,7 @@ score.cpp <- function(y, Gs, Gu, Ge, P0, chi0.mixture = 0.5){
 #' @return -log10(p) calculated by score test
 #'
 #'
-#' @export
+#'
 #'
 score.linker.cpp <- function(y, Ws, Gammas, gammas.diag = TRUE, Gu, Ge, P0, chi0.mixture = 0.5){
   nuisance.no <- 2

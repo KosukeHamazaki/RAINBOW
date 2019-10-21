@@ -2,7 +2,6 @@
 #'
 #' @return the R code which you should perform for RAINBOW GWAS
 #'
-#' @export
 #'
 RGWAS.menu <- function(){
   test.methods <- c("'LR'", "'score'")
