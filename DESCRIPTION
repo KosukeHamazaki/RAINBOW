@@ -1,7 +1,7 @@
 Package: RAINBOW
 Type: Package
 Title: Perform Genome-Wide Association Study (GWAS) by Kernel-Based Methods
-Version: 0.1.7
+Version: 0.1.8
 Author: Kosuke Hamazaki and Hiroyoshi Iwata
 Maintainer: Kosuke Hamazaki <hamazaki@ut-biomet.org>
 Description: Users can test multiple SNPs simultaneously by kernel-based (SNP-set) methods. Users can test not only additive effects but also dominance and epistatic effects.
