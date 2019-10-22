@@ -159,6 +159,9 @@ devtools<span class="op">::</span><span class="kw">install_github</span>(<span c
 
 ### Load example datasets
 <span class="kw">data</span>(<span class="st">&quot;Rice_Zhao_etal&quot;</span>)
+Rice_geno_score &lt;-<span class="st"> </span>Rice_Zhao_etal<span class="op">$</span>genoScore
+Rice_geno_map &lt;-<span class="st"> </span>Rice_Zhao_etal<span class="op">$</span>genoMap
+Rice_pheno &lt;-<span class="st"> </span>Rice_Zhao_etal<span class="op">$</span>pheno
 
 ### View each dataset
 <span class="kw">See</span>(Rice_geno_score)
@@ -275,7 +278,7 @@ normal.res &lt;-<span class="st"> </span><span class="kw">RGWAS.normal</span>(<s
 <span class="co">#&gt; [1] &quot;GWAS for trait : Flowering.time.at.Arkansas&quot;</span>
 <span class="co">#&gt; [1] &quot;Variance components estimated. Testing markers.&quot;</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Time difference of 4.246819 secs</span>
+<span class="co">#&gt; Time difference of 4.424928 secs</span>
 <span class="kw">See</span>(normal.res<span class="op">$</span>D)  ### Column 4 contains -log10(p) values for markers
 <span class="co">#&gt;          marker     chrom       pos Flowering.time.at.Arkansas</span>
 <span class="co">#&gt; class  &lt;factor&gt; &lt;integer&gt; &lt;integer&gt;                  &lt;numeric&gt;</span>
@@ -296,7 +299,7 @@ SNP_set.res &lt;-<span class="st"> </span><span class="kw">RGWAS.multisnp</span>
                               <span class="dt">test.effect =</span> <span class="st">&quot;additive&quot;</span>, <span class="dt">window.size.half =</span> <span class="dv">5</span>, <span class="dt">window.slide =</span> <span class="dv">11</span>)
 <span class="co">#&gt; [1] &quot;GWAS for trait : Flowering.time.at.Arkansas&quot;</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Time difference of 2.483996 mins</span>
+<span class="co">#&gt; Time difference of 3.179335 mins</span>
 
 <span class="kw">See</span>(SNP_set.res<span class="op">$</span>D)  ### Column 4 contains -log10(p) values for markers
 <span class="co">#&gt;          marker     chrom       pos Flowering.time.at.Arkansas</span>

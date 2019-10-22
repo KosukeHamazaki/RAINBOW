@@ -4,6 +4,9 @@
 
   ### Load example datasets
   data("Rice_Zhao_etal")
+  Rice_geno_score <- Rice_Zhao_etal$genoScore
+  Rice_geno_map <- Rice_Zhao_etal$genoMap
+  Rice_pheno <- Rice_Zhao_etal$pheno
 
   ### View each dataset
   See(Rice_geno_score)
@@ -22,7 +25,7 @@
 
 
   ### Estimate genetic relationship matrix
-  K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("RAINBOW")
+  K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("RAINBOWR")
 
 
   ### Modify data
@@ -33,7 +36,7 @@
   ZETA <- modify.data.res$ZETA
 
 
-  ### View each data for RAINBOW
+  ### View each data for RAINBOWR
   See(pheno.GWAS)
   See(geno.GWAS)
   str(ZETA)
