@@ -1,6 +1,6 @@
 #' Print the R code which you should perform for RAINBOW GWAS
-#'
-#' @return the R code which you should perform for RAINBOW GWAS
+#' @description Print the R code which you should perform for RAINBOW (Reliable Association INference By Optimizing Weights).
+#' @return The R code which you should perform for RAINBOW GWAS
 #'
 #'
 RGWAS.menu <- function(){

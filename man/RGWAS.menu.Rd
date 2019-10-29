@@ -7,8 +7,8 @@
 RGWAS.menu()
 }
 \value{
-the R code which you should perform for RAINBOW GWAS
+The R code which you should perform for RAINBOW GWAS
 }
 \description{
-Print the R code which you should perform for RAINBOW GWAS
+Print the R code which you should perform for RAINBOW (Reliable Association INference By Optimizing Weights).
 }

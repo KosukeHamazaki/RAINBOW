@@ -1,5 +1,5 @@
 #' Rice_Zhao_etal:
-#'
+#' 
 #' Marker genotype and phenotype data of rice by Zhao et al., 2010.
 #'
 #'

@@ -1,4 +1,4 @@
-\dontrun{
+\donttest{
   ### Import RAINBOW
   require(RAINBOW)
 
