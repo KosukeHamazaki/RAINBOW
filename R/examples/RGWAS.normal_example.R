@@ -35,7 +35,7 @@ geno.GWAS <- modify.data.res$geno.GWAS
 ZETA <- modify.data.res$ZETA
 
 
-### View each data for RAINBOWR
+### View each data for RAINBOW
 See(pheno.GWAS)
 See(geno.GWAS)
 str(ZETA)
