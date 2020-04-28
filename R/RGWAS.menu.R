@@ -1,5 +1,5 @@
 #' Print the R code which you should perform for RAINBOW GWAS
-#' @description Print the R code which you should perform for RAINBOW (Reliable Association INference By Optimizing Weights).
+#' @description Print the R code which you should perform for RAINBOW (Reliable Association INference By Optimizing Weights with R).
 #' @return The R code which you should perform for RAINBOW GWAS
 #'
 #'

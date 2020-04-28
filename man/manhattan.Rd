@@ -4,10 +4,20 @@
 \alias{manhattan}
 \title{Draw manhattan plot}
 \usage{
-manhattan(input, sig.level = 0.05, method.thres = "BH", y.max = NULL,
-  cex.lab = 1, lwd.thres = 1, plot.col1 = c("dark blue",
-  "cornflowerblue"), cex.axis.x = 1, cex.axis.y = 1, plot.type = "p",
-  plot.pch = 16)
+manhattan(
+  input,
+  sig.level = 0.05,
+  method.thres = "BH",
+  y.max = NULL,
+  cex = 1,
+  cex.lab = 1,
+  lwd.thres = 1,
+  plot.col1 = c("dark blue", "cornflowerblue"),
+  cex.axis.x = 1,
+  cex.axis.y = 1,
+  plot.type = "p",
+  plot.pch = 16
+)
 }
 \arguments{
 \item{input}{Data frame of GWAS results where the first column is the marker names,
@@ -18,6 +28,8 @@ the second and third column is the chromosome amd map position, and the forth co
 \item{method.thres}{Method for detemining threshold of significance. "BH" and "Bonferroni are offered.}
 
 \item{y.max}{The maximum value for the vertical axis of manhattan plot. If NULL, automatically determined.}
+
+\item{cex}{A numerical value giving the amount by which plotting text and symbols should be magnified relative to the default.}
 
 \item{cex.lab}{The font size of the labels.}
 

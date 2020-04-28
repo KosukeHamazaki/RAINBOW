@@ -10,5 +10,5 @@ RGWAS.menu()
 The R code which you should perform for RAINBOW GWAS
 }
 \description{
-Print the R code which you should perform for RAINBOW (Reliable Association INference By Optimizing Weights).
+Print the R code which you should perform for RAINBOW (Reliable Association INference By Optimizing Weights with R).
 }

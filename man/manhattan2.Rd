@@ -4,9 +4,19 @@
 \alias{manhattan2}
 \title{Draw manhattan plot (another method)}
 \usage{
-manhattan2(input, sig.level = 0.05, method.thres = "BH",
-  plot.col2 = 1, plot.type = "p", plot.pch = 16, cum.pos = NULL,
-  lwd.thres = 1, cex.lab = 1, cex.axis = 1)
+manhattan2(
+  input,
+  sig.level = 0.05,
+  method.thres = "BH",
+  cex = 1,
+  plot.col2 = 1,
+  plot.type = "p",
+  plot.pch = 16,
+  cum.pos = NULL,
+  lwd.thres = 1,
+  cex.lab = 1,
+  cex.axis = 1
+)
 }
 \arguments{
 \item{input}{Data frame of GWAS results where the first column is the marker names,
@@ -15,6 +25,8 @@ the second and third column is the chromosome amd map position, and the forth co
 \item{sig.level}{Siginifincance level for the threshold. The default is 0.05.}
 
 \item{method.thres}{Method for detemining threshold of significance. "BH" and "Bonferroni are offered.}
+
+\item{cex}{A numerical value giving the amount by which plotting text and symbols should be magnified relative to the default.}
 
 \item{plot.col2}{Color of the manhattan plot. color changes with chromosome and it starts from plot.col2 + 1
 (so plot.col2 = 1 means color starts from red.)}

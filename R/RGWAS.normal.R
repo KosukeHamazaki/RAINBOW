@@ -294,8 +294,7 @@ RGWAS.normal <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.f
     } else {
       M.now <- M[apply(Z.A[not.NA, ], 1, function(x) which(x == 1)), ]
     }
-
-
+    
     #### Calculate Hinv at first ####
     if(P3D){
       if(length(ZETA) > 1){
@@ -449,4 +448,4 @@ RGWAS.normal <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.f
       return(data.frame(map, all.scores))
     }
   }
-  }
+}

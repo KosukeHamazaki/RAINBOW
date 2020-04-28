@@ -1,5 +1,5 @@
 ---
-title: "RAINBOW: Reliable Association INference By Optimizing Weights"
+title: "RAINBOW: Reliable Association INference By Optimizing Weights with R"
 author: 
 - Kosuke Hamazaki (hamazaki@ut-biomet.org)
 - Hiroyoshi Iwata
@@ -25,7 +25,7 @@ Here, we describe how to install and how to use `RAINBOW`.
 
 ----------
 ## What is `RAINBOW`
-`RAINBOW`(Reliable Association INference By Optimizing Weights) is a package to perform several types of `GWAS` as follows.
+`RAINBOW`(Reliable Association INference By Optimizing Weights with R) is a package to perform several types of `GWAS` as follows.
 
 - Single-SNP GWAS with `RGWAS.normal` function
 - SNP-set (or gene set) GWAS with `RGWAS.multisnp` function (which tests multiple SNPs at the same time)
@@ -49,9 +49,14 @@ Finally, `RAINBOW` offers other useful functions.
 - `SS_GWAS` function to summarize GWAS results (only for simulation study)
 
 ## Installation
-`RAINBOW` is now available on [`GitHub`](https://github.com/KosukeHamazaki/RAINBOW), so please run the following code in the R console.
+The stable version of `RAINBOW` is now available at the [CRAN (Comprehensive R Archive Network)](https://cran.r-project.org/web/packages/RAINBOW/index.html). The latest version of `RAINBOW` is also available at the `KosukeHamazaki/RAINBOW` repository in the [`GitHub`](https://github.com/KosukeHamazaki/RAINBOW), so please run the following code in the R console.
 
-``` {r, include=TRUE, eval=FALSE}
+``` r
+#### Stable version of RAINBOW ####
+install.packages("RAINBOW")  
+
+
+#### Latest version of RAINBOW ####
 ### If you have not installed yet, ...
 install.packages("devtools")  
 
@@ -161,7 +166,7 @@ manhattan(normal.res$D)
 Next, we perform SNP-set GWAS by `RGWAS.multisnp` function.
 
 ``` {r, include=TRUE, message=FALSE}
-### Perform SNP-set GWAS (by regarding 11 SNPs as one SNP-set, use first 300 SNPs)
+### Perform SNP-set GWAS (by regarding 11 SNPs as one SNP-set, first 300 SNPs)
 SNP_set.res <- RGWAS.multisnp(pheno = pheno.GWAS, geno = geno.GWAS[1:300, ], ZETA = ZETA,
                               plot.qq = FALSE, plot.Manhattan = FALSE, count = FALSE,
                               n.PC = 4, test.method = "LR", kernel.method = "linear", gene.set = NULL,

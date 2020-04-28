@@ -5,13 +5,6 @@ knitr::opts_chunk$set(
   fig.dpi=96
 )
 
-## ---- include=TRUE, eval=FALSE-------------------------------------------
-#  ### If you have not installed yet, ...
-#  install.packages("devtools")
-#  
-#  ### Install RAINBOW from GitHub
-#  devtools::install_github("KosukeHamazaki/RAINBOW")
-
 ## ---- include=TRUE-------------------------------------------------------
 ### Import RAINBOW
 require(RAINBOW)
@@ -69,7 +62,7 @@ manhattan(normal.res$D)
 ### Automatically draw Q-Q plot and Manhattan if you set plot.qq = TRUE and plot.Manhattan = TRUE.
 
 ## ---- include=TRUE, message=FALSE----------------------------------------
-### Perform SNP-set GWAS (by regarding 11 SNPs as one SNP-set, use first 300 SNPs)
+### Perform SNP-set GWAS (by regarding 11 SNPs as one SNP-set, first 300 SNPs)
 SNP_set.res <- RGWAS.multisnp(pheno = pheno.GWAS, geno = geno.GWAS[1:300, ], ZETA = ZETA,
                               plot.qq = FALSE, plot.Manhattan = FALSE, count = FALSE,
                               n.PC = 4, test.method = "LR", kernel.method = "linear", gene.set = NULL,

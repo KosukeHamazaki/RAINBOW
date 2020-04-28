@@ -1,4 +1,4 @@
-// @useDynLib RAINBOWR
+// @useDynLib RAINBOW
 // @importFrom Rcpp evalCpp
 //
 // [[Rcpp::depends(Rcpp)]]
