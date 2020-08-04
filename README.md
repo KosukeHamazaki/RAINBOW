@@ -1,26 +1,27 @@
-# RAINBOWR
+# RAINBOW
 ###   Reliable Association INference By Optimizing Weights with R
 #### Author : Kosuke Hamazaki (hamazaki@ut-biomet.org)
-#### Date : 2019/03/25 (Last update: 2019/10/21)
+#### Date : 2019/03/25 (Last update: 2020/04/29)
 
 ## NOTE!!!!
-### The older version of `RAINBOWR` is `RAINBOW`, which is available at https://github.com/KosukeHamazaki/RAINBOW.
+### The newest version of `RAINBOW` is `RAINBOWR`, which is available at https://github.com/KosukeHamazaki/RAINBOWR.
 ##### We changed the package name from `RAINBOW` to `RAINBOWR` because the original package name `RAINBOW` conflicted with the package `rainbow` (https://cran.r-project.org/web/packages/rainbow/index.html) when we submitted our package to `CRAN` (https://cran.r-project.org/).
+##### We will continue to maintain this repository, but we strongly recommend the installation of `RAINBOWR` from https://github.com/KosukeHamazaki/RAINBOWR.
 
 ----------
-
-In this repository, the `R` package `RAINBOWR` is available.
-Here, we describe how to install and how to use `RAINBOWR`.
+  
+  In this repository, the `R` package `RAINBOW` is available.
+Here, we describe how to install and how to use `RAINBOW`.
 
 ----------
-## What is `RAINBOWR`
-`RAINBOWR`(Reliable Association INference By Optimizing Weights with R) is a package to perform several types of `GWAS` as follows.
+## What is `RAINBOW`
+`RAINBOW`(Reliable Association INference By Optimizing Weights with R) is a package to perform several types of `GWAS` as follows.
 
 - Single-SNP GWAS with `RGWAS.normal` function
 - SNP-set (or gene set) GWAS with `RGWAS.multisnp` function (which tests multiple SNPs at the same time)
 - Check epistatic (SNP-set x SNP-set interaction) effects with `RGWAS.epistasis` (very slow and less reliable)
 
-`RAINBOWR` also offers some functions to solve the linear mixed effects model.
+`RAINBOW` also offers some functions to solve the linear mixed effects model.
 
 - Solve one-kernel linear mixed effects model with `EMM.cpp` function
 - Solve multi-kernel linear mixed effects model with `EM3.cpp` function (for the general kernel, not so fast)
@@ -28,7 +29,7 @@ Here, we describe how to install and how to use `RAINBOWR`.
 
 By utilizing these functions, you can estimate the genomic heritability and perform genomic prediction (`GP`).
 
-Finally, `RAINBOWR` offers other useful functions.
+Finally, `RAINBOW` offers other useful functions.
 
 - `qq` and `manhattan` function to draw Q-Q plot and Manhattan plot
 - `modify.data` function to match phenotype and marker genotype data
@@ -38,19 +39,19 @@ Finally, `RAINBOWR` offers other useful functions.
 - `SS_GWAS` function to summarize GWAS results (only for simulation study)
 
 ## Installation
-The stable version of `RAINBOWR` is now available at the [CRAN (Comprehensive R Archive Network)](https://cran.r-project.org/web/packages/RAINBOWR/index.html). The latest version of `RAINBOWR` is also available at the `KosukeHamazaki/RAINBOWR` repository in the [`GitHub`](https://github.com/KosukeHamazaki/RAINBOWR), so please run the following code in the R console.
+The stable version of `RAINBOW` is now available at the [CRAN (Comprehensive R Archive Network)](https://cran.r-project.org/package=RAINBOW). The latest version of `RAINBOW` is also available at the `KosukeHamazaki/RAINBOW` repository in the [`GitHub`](https://github.com/KosukeHamazaki/RAINBOW), so please run the following code in the R console.
 
 ``` r
-#### Stable version of RAINBOWR ####
-install.packages("RAINBOWR")  
+#### Stable version of RAINBOW ####
+install.packages("RAINBOW")  
 
 
-#### Latest version of RAINBOWR ####
+#### Latest version of RAINBOW ####
 ### If you have not installed yet, ...
 install.packages("devtools")  
 
-### Install RAINBOWR from GitHub
-devtools::install_github("KosukeHamazaki/RAINBOWR")
+### Install RAINBOW from GitHub
+devtools::install_github("KosukeHamazaki/RAINBOW")
 ```
 
 If you get some errors via installation, please check if the following packages are correctly installed.
@@ -68,18 +69,18 @@ pbmcapply,
 Optima
 ```
 
-In `RAINBOWR`,  since part of the code is written in `Rcpp` (`C++` in `R`),  please check if you can use `C++` in `R`.
+In `RAINBOW`,  since part of the code is written in `Rcpp` (`C++` in `R`),  please check if you can use `C++` in `R`.
 For `Windows` users,  you should install [`Rtools`](https://cran.r-project.org/bin/windows/Rtools/).
 
 If you have some questions about installation, please contact us by e-mail (hamazaki@ut-biomet.org).
 
 
 ##  Usage
-First, import `RAINBOWR` package and load example datasets. These example datasets consist of marker genotype (scored with {-1, 0, 1}, 1,536 SNP chip (Zhao et al., 2010; PLoS One 5(5): e10780)), map with physical position, and phenotypic data (Zhao et al., 2011; Nature Communications 2:467). Both datasets can be downloaded from `Rice Diversity` homepage (http://www.ricediversity.org/data/). 
+First, import `RAINBOW` package and load example datasets. These example datasets consist of marker genotype (scored with {-1, 0, 1}, 1,536 SNP chip (Zhao et al., 2010; PLoS One 5(5): e10780)), map with physical position, and phenotypic data (Zhao et al., 2011; Nature Communications 2:467). Both datasets can be downloaded from `Rice Diversity` homepage (http://www.ricediversity.org/data/). 
 
 ``` r
-### Import RAINBOWR
-require(RAINBOWR)
+### Import RAINBOW
+require(RAINBOW)
 
 ### Load example datasets
 data("Rice_Zhao_etal")
@@ -111,14 +112,14 @@ x <- MAF.cut.res$x
 map <- MAF.cut.res$map
 ```
 
-Next, we estimate additive genetic relationship matrix by using `rrBLUP` package.
+Next, we estimate additive genomic relationship matrix (GRM) by using `rrBLUP` package.
 
 ``` r
-### Estimate genetic relationship matrix 
-K.A <- rrBLUP::A.mat(x) ### rrBLUP package can be installed by install.packages("rrBLUP")
+### Estimate genomic relationship matrix (GRM) 
+K.A <- calcGRM(genoMat = x)
 ```
 
-Next, we modify these data into the GWAS format of `RAINBOWR` by `modify.data` function.
+Next, we modify these data into the GWAS format of `RAINBOW` by `modify.data` function.
 
 ``` r
 ### Modify data
@@ -128,12 +129,12 @@ pheno.GWAS <- modify.data.res$pheno.GWAS
 geno.GWAS <- modify.data.res$geno.GWAS
 ZETA <- modify.data.res$ZETA
 
-### View each data for RAINBOWR
+### View each data for RAINBOW
 See(pheno.GWAS)
 See(geno.GWAS)
 str(ZETA)
 ```
-`ZETA` is a list of genetic relationship matrix and its design matrix.
+`ZETA` is a list of genomic relationship matrix (GRM) and its design matrix.
 
 Finally, we can perform `GWAS` using these data.
 First, we perform single-SNP GWAS by `RGWAS.normal` function as follows.
@@ -173,7 +174,7 @@ ex.)
 
 
 ### Help
-If you have some help before performing `GWAS` with `RAINBOWR`, please see the help for each function by `?function_name`.
+If you have some help before performing `GWAS` with `RAINBOW`, please see the help for each function by `?function_name`.
 You can also check how to determine each argument by
 
 ``` r

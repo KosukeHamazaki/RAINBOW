@@ -55,7 +55,7 @@
 #' \describe{
 #' \item{"gaussian"}{It is the default method. Gaussian kernel is calculated by distance matrix.}
 #' \item{"exponential"}{When this method is selected, exponential kernel is calculated by distance matrix.}
-#' \item{"linear"}{When this method is selected, linear kernel is calculated by A.mat.}
+#' \item{"linear"}{When this method is selected, linear kernel is calculated by NOIA methods for additive GRM.}
 #'}
 #' So local genomic relation matrix is regarded as kernel.
 #' @param kernel.h The hyper parameter for gaussian or exponential kernel.
@@ -386,7 +386,7 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
       LL0 <- EMM.res0$LL
 
       spectral.res <- spectralG.cpp(ZETA = ZETA.now, X = X.now, weights = weights,
-                                    return.G = TRUE, return.SGS = TRUE)
+                                    return.G = TRUE, return.SGS = TRUE, spectral.method = "eigen")
       eigen.G <- spectral.res[[1]]
       eigen.SGS <- spectral.res[[2]]
     }else{
@@ -541,7 +541,7 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
         }
         all.scores[[test.effect.no]][, pheno.no] <- scores[, test.effect.no]
         threshold <- try(CalcThreshold(cbind(map2, scores[, test.effect.no]), sig.level = sig.level, method = method.thres), silent = TRUE)
-        if(class(threshold) == "try-error"){
+        if("try-error" %in% class(threshold)){
           threshold <- NA
         }
         thresholds[test.effect.no, pheno.no] <- threshold
@@ -626,7 +626,7 @@ RGWAS.multisnp <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate
       }
       all.scores[, pheno.no] <- scores
       threshold <- try(CalcThreshold(cbind(map2, scores), sig.level = sig.level, method = method.thres), silent = TRUE)
-      if(class(threshold) == "try-error"){
+      if("try-error" %in% class(threshold)){
         threshold <- NA
       }
       thresholds[, pheno.no] <- threshold

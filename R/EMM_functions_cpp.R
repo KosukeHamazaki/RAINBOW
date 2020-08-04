@@ -5,7 +5,7 @@
 #' @param ZETA A list of variance (relationship) matrix (K; \eqn{m \times m}) and its design matrix (Z; \eqn{n \times m}) of random effects. You can use only one kernel matrix.
 #' For example, ZETA = list(A = list(Z = Z, K = K))
 #' Please set names of list "Z" and "K"!
-#' @param ZWs A list of additional linear kernels other than genetic relationship matrix.
+#' @param ZWs A list of additional linear kernels other than genomic relationship matrix (GRM).
 #' We utilize this argument in RGWAS.multisnp function, so you can ignore this.
 #' @param X \eqn{n \times p} matrix. You should assign mean vector (rep(1, n)) and covariates. NA is not allowed.
 #' @param weights If the length of ZETA >= 2, you should assign the ratio of variance components to this argument.
@@ -60,6 +60,7 @@ spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TR
   if((lz + lw) != length(weights)){
     stop("Weights should have the same length as ZETA!")
   }
+  stopifnot(all(weights >= 0))
 
   if(is.null(X)){
     X <- as.matrix(rep(1, n))
@@ -88,12 +89,12 @@ spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TR
 
       diag(K.now) <- diag(K.now) + 1e-06
       B.now <- try(chol(K.now), silent = TRUE)
-      if (class(B.now) == "try-error") {
+      if ("try-error" %in% class(B.now)) {
         stop("K not positive semi-definite.")
       }
 
       ZBt.now <- tcrossprod(Z.now, B.now)
-      ZBt <- cbind(ZBt, weights[i] * ZBt.now)
+      ZBt <- cbind(ZBt, sqrt(weights[i]) * ZBt.now)
     }
 
     if(!is.null(ZWs)){
@@ -102,14 +103,14 @@ spectralG.cpp <- function(ZETA, ZWs = NULL, X = NULL, weights = 1, return.G = TR
         Bt.now <- ZWs[[j]]$W %*% ZWs[[j]]$Gamma
 
         ZBt.now <- Z.now %*% Bt.now
-        ZBt <- cbind(ZBt, weights[lz + j] * ZBt.now)
+        ZBt <- cbind(ZBt, sqrt(weights[lz + j]) * ZBt.now)
       }
     }
     spectral_G.res <- try(spectralG_cholesky(zbt = ZBt, x = X, return_G = return.G,
                                              return_SGS = return.SGS),
                           silent = TRUE)
 
-    if(class(spectral_G.res) != "try-error"){
+    if(!("try-error" %in% class(spectral_G.res))){
 
       if(return.G){
         U0 <- spectral_G.res$U
@@ -971,7 +972,8 @@ EM3.cpp <- function (y, X0 = NULL, ZETA, eigen.G = NULL, eigen.SGS = NULL, tol =
 
   if(is.null(eigen.G)){
     if(nrow(Z) <= n.thres){
-      return.SGS <- TRUE
+      # return.SGS <- TRUE
+      return.SGS <-  FALSE
     }else{
       return.SGS <- FALSE
     }

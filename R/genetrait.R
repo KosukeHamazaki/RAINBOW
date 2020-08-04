@@ -27,7 +27,7 @@
 #' }
 #' For example, K.A is additive relationship matrix for the covariance between lines, and K.D is dominance relationship matrix.
 #' @param x2 A genotype matrix to calculate additive relationship matrix when Z.ETA = NULL.
-#' If Z.ETA = NULL & x2 = NULL, A.mat(x) will be calculated as kernel matrix.
+#' If Z.ETA = NULL & x2 = NULL, calcGRM(x) will be calculated as kernel matrix.
 #' @param num.qtn The number of QTNs
 #' @param weight The weights for each QTN by their standard deviations. Negative value is also allowed.
 #' @param qtn.effect Additive of dominance for each marker effect. This argument should be the same length as num.qtn.
@@ -56,299 +56,274 @@
 #' \item{qtn.position}{QTN positions}
 #' \item{heritability}{Genomic heritability for generated phenotypic values.}
 #' }
-genetrait <-
-  function(x,
-           sample.sets = NULL,
-           candidate = NULL,
-           pos = NULL,
-           x.par = NULL,
-           ZETA = NULL,
-           x2 = NULL,
-           num.qtn = 3,
-           weight = c(2, 1, 1),
-           qtn.effect = rep("A", num.qtn),
-           prop = 1,
-           polygene.weight = 1,
-           polygene = TRUE,
-           h2 = 0.6,
-           h.correction = FALSE,
-           seed = NULL,
-           plot = TRUE,
-           saveAt = NULL,
-           subpop = NULL,
-           return.all = FALSE,
-           seed.env = TRUE) {
-    test.effects <- c("A", "D")
+genetrait <- function(x, sample.sets = NULL, candidate = NULL, pos = NULL, x.par = NULL, ZETA = NULL, x2 = NULL,
+                      num.qtn = 3, weight = c(2, 1, 1), qtn.effect = rep("A", num.qtn), prop = 1, polygene.weight = 1, polygene = TRUE, h2 = 0.6, h.correction = FALSE,
+                      seed = NULL, plot = TRUE, saveAt = NULL, subpop = NULL, return.all = FALSE, seed.env = TRUE){
+  test.effects <- c("A", "D")
 
-    #### The constraint of the heritability ####
-    if (h2 < 0 | h2 > 1) {
-      stop("The heritability must be in [0, 1]!!!")
+  #### The constraint of the heritability ####
+  if (h2 < 0 | h2 > 1) {
+    stop("The heritability must be in [0, 1]!!!")
+  }
+
+  if (h2 == 0) {
+    num.qtn <- 0
+    polygene <- FALSE
+    h.correction <- FALSE
+  }
+
+  if (is.null(ZETA)) {
+    if (is.null(x2)) {
+      K <- calcGRM(genoMat = x)
+    } else {
+      K <- calcGRM(genoMat = x2)
     }
-
-    if (h2 == 0) {
-      num.qtn <- 0
-      polygene <- FALSE
-      h.correction <- FALSE
-    }
-
-    if (is.null(ZETA)) {
-      if (is.null(x2)) {
-        K <- rrBLUP::A.mat(x)
-      } else {
-        K <- rrBLUP::A.mat(x2)
-      }
-
-      Z <- diag(nrow(K))
-
-      ZETA <- list(A = list(Z = Z, K = K))
-    }
-    lz <- length(ZETA)
-
-    Z <- ZETA[[lz]]$Z
-    n <- nrow(Z)
-
-    if (sum(num.qtn) != 0) {
-      #### If there are some QTNs ####
-      if (is.null(candidate)) {
-        if (!is.null(seed)) {
-          set.seed(seed)
-        }
-        if (!is.null(pos)) {
-          #### If there is map information ####
-          if (is.null(sample.sets)) {
-            qtn.candidates <-
-              sample(1:length(pos), num.qtn)    ### Draw QTNs from genotype data randomly.
-          } else {
-            qtn.candidates <- NULL
-            for (i in 1:ncol(sample.sets)) {
-              qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
-              while (sum(is.na(qtn.candidate)) != 0) {
-                qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
-              }
-              qtn.candidates <- c(qtn.candidates, qtn.candidate)
-            }
-          }
-        } else {
-          #### If there is no map information ####
-          if (is.null(sample.sets)) {
-            qtn.candidates <-
-              sample(1:ncol(x), num.qtn)    ### Draw QTNs from genotype data randomly.
-          } else {
-            qtn.candidates <- NULL
-            for (i in 1:ncol(sample.sets)) {
-              qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
-              while (sum(is.na(qtn.candidate)) != 0) {
-                qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
-              }
-              qtn.candidates <- c(qtn.candidates, qtn.candidate)
-            }
-          }
-        }
-      } else {
-        qtn.candidates <- candidate
+    
+    Z <- diag(nrow(K))
+    
+    ZETA <- list(A = list(Z = Z, K = K))
+  }
+  lz <- length(ZETA)
+  
+  Z <- ZETA[[lz]]$Z
+  n <- nrow(Z)
+  
+  if (sum(num.qtn) != 0) {
+    #### If there are some QTNs ####
+    if (is.null(candidate)) {
+      if (!is.null(seed)) {
+        set.seed(seed)
       }
       if (!is.null(pos)) {
-        pos.qtns <- pos[qtn.candidates]
-      }
-
-      #### Calculate QTN effects ####
-      if (sum(num.qtn) != 1) {
-        if (is.null(x.par)) {
-          x.cand <- x[, qtn.candidates]
+        #### If there is map information ####
+        if (is.null(sample.sets)) {
+          qtn.candidates <-
+            sample(1:length(pos), num.qtn)    ### Draw QTNs from genotype data randomly.
         } else {
-          x.cand <- x.par[, qtn.candidates]
+          qtn.candidates <- NULL
+          for (i in 1:ncol(sample.sets)) {
+            qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
+            while (sum(is.na(qtn.candidate)) != 0) {
+              qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
+            }
+            qtn.candidates <- c(qtn.candidates, qtn.candidate)
+          }
         }
-        match.effect <- match(qtn.effect, test.effects)
-        x.cand.eff <- x.cand
-        x.cand.eff[, match.effect == 2] <-
-          apply(x.cand[, match.effect == 2, drop = F], 2, abs)
-        effect.qtns.0 <-  1 / apply(x.cand.eff, 2, sd)
       } else {
-        x.cand <- x[, qtn.candidates, drop = F]
-        x.cand.eff <- x.cand
-        x.cand.eff[, match.effect == 2] <-
-          apply(x.cand[, match.effect == 2, drop = F], 2, abs)
-        effect.qtns.0 <-  1 / sd(c(x.cand.eff))
-      }
-      if (length(weight) != sum(num.qtn)) {
-        stop("The length of weight should be equal to the number of qtns!!")
-      }
-      effect.qtns <- effect.qtns.0 * weight
-
-      #### Calculate QTN effects of each lineage ####
-      if (sum(num.qtn) != 1) {
-        g1  <- apply(Z %*% x.cand.eff, 1, function(x)
-          sum(x * effect.qtns))
-      } else {
-        g1 <- c(Z %*% x.cand.eff) * effect.qtns
-      }
-
-
-      #### Calculate polygenetic effects ####
-      if (!is.null(seed)) {
-        set.seed(seed)
-      }
-      if (polygene) {
-        g2s <- matrix(NA, nrow = n, ncol = lz)
-        for (i in 1:lz) {
-          Z.now <- ZETA[[i]]$Z
-          K.now <- ZETA[[i]]$K
-          g2.now  <- MASS::mvrnorm(1, rep(0, nrow(x)), K.now)
-          g2s[, i] <- Z.now %*% as.matrix(g2.now)
+        #### If there is no map information ####
+        if (is.null(sample.sets)) {
+          qtn.candidates <-
+            sample(1:ncol(x), num.qtn)    ### Draw QTNs from genotype data randomly.
+        } else {
+          qtn.candidates <- NULL
+          for (i in 1:ncol(sample.sets)) {
+            qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
+            while (sum(is.na(qtn.candidate)) != 0) {
+              qtn.candidate <- sample(sample.sets[, i], num.qtn[i])
+            }
+            qtn.candidates <- c(qtn.candidates, qtn.candidate)
+          }
         }
-
-        g2 <- c(g2s %*% polygene.weight)
-        g2_2 <-
-          g2 / (sd(g2) * sqrt(prop) / (sd(g1)))   ## match sd(g1) and sd(g2_2)
-
-        g.all <- g1 + g2_2   ### genotypic value!
-      } else {
-        g.all <- g1
       }
     } else {
-      qtn.candidates <- pos.qtns <- NULL
+      qtn.candidates <- candidate
+    }
+    if (!is.null(pos)) {
+      pos.qtns <- pos[qtn.candidates]
+    }
 
-      if (!is.null(seed)) {
-        set.seed(seed)
+    #### Calculate QTN effects ####
+    if(sum(num.qtn) != 1){
+      if(is.null(x.par)){
+        x.cand <- x[, qtn.candidates]
+      }else {
+        x.cand <- x.par[, qtn.candidates]
       }
-      if (polygene) {
-        g2s <- matrix(NA, nrow = n, ncol = lz)
-        for (i in 1:lz) {
-          Z.now <- ZETA[[i]]$Z
-          K.now <- ZETA[[i]]$K
-          g2.now  <- MASS::mvrnorm(1, rep(0, nrow(x)), K.now)
-          g2s[, i] <- Z.now %*% as.matrix(g2.now)
-        }
+      match.effect <- match(qtn.effect, test.effects)
+      x.cand.eff <- x.cand
+      x.cand.eff[, match.effect == 2] <- apply(x.cand[, match.effect == 2, drop = F], 2, abs)
+      effect.qtns.0 <-  1 / apply(x.cand.eff, 2, sd)
+    }else {
+      x.cand <- x[, qtn.candidates, drop = F]
+      x.cand.eff <- x.cand
+      x.cand.eff[, match.effect == 2] <- apply(x.cand[, match.effect == 2, drop = F], 2, abs)
+      effect.qtns.0 <-  1 / sd(c(x.cand.eff))
+    }
+    if(length(weight) != sum(num.qtn)){
+      stop("The length of weight should be equal to the number of qtns!!")
+    }
+    effect.qtns <- effect.qtns.0 * weight
 
-        g2 <- c(g2s %*% polygene.weight)
-        g.all <- g2
-      } else {
-        g.all <- 0
+    #### Calculate QTN effects of each lineage ####
+    if(sum(num.qtn) != 1){
+      g1  <- apply(Z %*% x.cand.eff, 1, function(x) sum(x * effect.qtns))
+    }else {
+      g1 <- c(Z %*% x.cand.eff) * effect.qtns
+    }
+
+
+    #### Calculate polygenetic effects ####
+    if(!is.null(seed)){set.seed(seed)}
+    if(polygene){
+      g2s <- matrix(NA, nrow = n, ncol = lz)
+      for(i in 1:lz){
+        Z.now <- ZETA[[i]]$Z
+        K.now <- ZETA[[i]]$K
+        g2.now  <- MASS::mvrnorm(1, rep(0, nrow(x)), K.now)
+        g2s[, i] <- Z.now %*% as.matrix(g2.now)
       }
-    }
 
-    if (sum(num.qtn) != 0 | polygene) {
-      g.all2 <- g.all / sd(g.all)
-    } else {
-      g.all2 <- 0
-    }
+      g2 <- c(g2s %*% polygene.weight)
+      g2_2 <- g2 / (sd(g2) * sqrt(prop) / (sd(g1)))   ## match sd(g1) and sd(g2_2)
 
-
-    #### Calculate environmental effects using heritability ####
-    if (h2 > 0) {
-      wariai <- (1 - h2) / h2
+      g.all <- g1 + g2_2   ### genotypic value!
+    }else {
+      g.all <- g1
     }
+  }else {
+    qtn.candidates <- pos.qtns <- NULL
+
     if (!is.null(seed)) {
-      if (!seed.env) {
-        seed <- NULL
-        set.seed(seed)
+      set.seed(seed)
+    }
+    if (polygene) {
+      g2s <- matrix(NA, nrow = n, ncol = lz)
+      for (i in 1:lz) {
+        Z.now <- ZETA[[i]]$Z
+        K.now <- ZETA[[i]]$K
+        g2.now  <- MASS::mvrnorm(1, rep(0, nrow(x)), K.now)
+        g2s[, i] <- Z.now %*% as.matrix(g2.now)
       }
-    }
-
-    if (sum(num.qtn) != 0 | polygene) {
-      e <- rnorm(n, 0, sqrt(wariai))
+      
+      g2 <- c(g2s %*% polygene.weight)
+      g.all <- g2
     } else {
-      h.correction <- FALSE
-      e <- rnorm(n, 0, 1)
-    }
-
-
-    #### Calculate phenotypic value and the real heritability ####
-    trait <- g.all2 + e
-    true_h <- var(g.all2) / var(trait)
-
-
-    #### Correct the environmental effects to match the real and expected heritability ####
-    if (h.correction) {
-      e.sca <- e / sqrt(sum(e ^ 2))
-      g.sca <- g.all2 / sqrt(sum(g.all2 ^ 2))
-
-      e2.dir <-
-        e.sca - (sum(e.sca * g.sca) * g.sca)   ### Use Schmidt orthgonalization method
-      e2 <- e2.dir * sqrt(wariai) / sd(e2.dir)
-
-      trait <- g.all2 + e2
-      true_h <- var(g.all2) / var(trait)
-    } else {
-      e2 <- e
-    }
-
-    #### Show boxplot of phenotypic values ####
-    if (plot) {
-      if (!is.null(saveAt)) {
-        png(paste(saveAt, "_boxplot.png", sep = ""))
-        boxplot(trait)
-        dev.off()
-        if (!is.null(subpop)) {
-          subpop.level <- unique(subpop)
-          subpop.max <- max(table(subpop))
-
-          trait.subpops <-
-            matrix(rep(NA, length(subpop.level) * subpop.max), nrow = subpop.max)
-          for (i in 1:length(subpop.level)) {
-            trait.subpop <- trait[which(subpop == subpop.level[i])]
-            if (length(trait.subpop) < subpop.max) {
-              trait.subpops[, i] <-
-                c(trait.subpop, rep(NA, subpop.max - length(trait.subpop)))
-            } else {
-              trait.subpops[, i] <- trait.subpop
-            }
-          }
-
-          png(paste(saveAt, "_boxplot_by_subpop.png", sep = ""))
-          boxplot(trait.subpops, names = subpop.level)
-          dev.off()
-        }
-      } else {
-        boxplot(trait)
-
-        if (!is.null(subpop)) {
-          subpop.level <- unique(subpop)
-          subpop.max <- max((table(subpop)))
-
-          trait.subpops <-
-            matrix(rep(NA, length(subpop.level) * subpop.max), nrow = subpop.max)
-          for (i in 1:length(subpop.level)) {
-            trait.subpop <- trait[which(subpop == subpop.level[i])]
-            if (length(trait.subpop) < subpop.max) {
-              trait.subpops[, i] <-
-                c(trait.subpop, rep(NA, subpop.max - length(trait.subpop)))
-            } else {
-              trait.subpops[, i] <- trait.subpop
-            }
-          }
-
-          boxplot(trait.subpops, names = subpop.level)
-
-        }
-
-
-      }
-    }
-    if (return.all) {
-      if (!is.null(pos)) {
-        return(
-          list(
-            trait = trait,
-            u = g.all2,
-            e = e2,
-            candidate = qtn.candidates,
-            qtn.position = pos.qtns,
-            heritability = true_h
-          )
-        )
-      } else {
-        return(
-          list(
-            trait = trait,
-            u = g.all2,
-            e = e2,
-            candidate = qtn.candidates,
-            heritability = true_h
-          )
-        )
-      }
-    } else {
-      return(trait)
+      g.all <- 0
     }
   }
+  
+  if (sum(num.qtn) != 0 | polygene) {
+    g.all2 <- g.all / sd(g.all)
+  } else {
+    g.all2 <- 0
+  }
+  
+  
+  #### Calculate environmental effects using heritability ####
+  if (h2 > 0) {
+    wariai <- (1 - h2) / h2
+  }
+  if (!is.null(seed)) {
+    if (!seed.env) {
+      seed <- NULL
+      set.seed(seed)
+    }
+  }
+  
+  if (sum(num.qtn) != 0 | polygene) {
+    e <- rnorm(n, 0, sqrt(wariai))
+  } else {
+    h.correction <- FALSE
+    e <- rnorm(n, 0, 1)
+  }
+  
+  
+  #### Calculate phenotypic value and the real heritability ####
+  trait <- g.all2 + e
+  true_h <- var(g.all2) / var(trait)
+  
+  
+  #### Correct the environmental effects to match the real and expected heritability ####
+  if (h.correction) {
+    e.sca <- e / sqrt(sum(e ^ 2))
+    g.sca <- g.all2 / sqrt(sum(g.all2 ^ 2))
+    
+    e2.dir <-
+      e.sca - (sum(e.sca * g.sca) * g.sca)   ### Use Schmidt orthgonalization method
+    e2 <- e2.dir * sqrt(wariai) / sd(e2.dir)
+    
+    trait <- g.all2 + e2
+    true_h <- var(g.all2) / var(trait)
+  } else {
+    e2 <- e
+  }
+  
+  #### Show boxplot of phenotypic values ####
+  if (plot) {
+    if (!is.null(saveAt)) {
+      png(paste(saveAt, "_boxplot.png", sep = ""))
+      boxplot(trait)
+      dev.off()
+      if (!is.null(subpop)) {
+        subpop.level <- unique(subpop)
+        subpop.max <- max(table(subpop))
+        
+        trait.subpops <-
+          matrix(rep(NA, length(subpop.level) * subpop.max), nrow = subpop.max)
+        for (i in 1:length(subpop.level)) {
+          trait.subpop <- trait[which(subpop == subpop.level[i])]
+          if (length(trait.subpop) < subpop.max) {
+            trait.subpops[, i] <-
+              c(trait.subpop, rep(NA, subpop.max - length(trait.subpop)))
+          } else {
+            trait.subpops[, i] <- trait.subpop
+          }
+        }
+        
+        png(paste(saveAt, "_boxplot_by_subpop.png", sep = ""))
+        boxplot(trait.subpops, names = subpop.level)
+        dev.off()
+      }
+    } else {
+      boxplot(trait)
+      
+      if (!is.null(subpop)) {
+        subpop.level <- unique(subpop)
+        subpop.max <- max((table(subpop)))
+        
+        trait.subpops <-
+          matrix(rep(NA, length(subpop.level) * subpop.max), nrow = subpop.max)
+        for (i in 1:length(subpop.level)) {
+          trait.subpop <- trait[which(subpop == subpop.level[i])]
+          if (length(trait.subpop) < subpop.max) {
+            trait.subpops[, i] <-
+              c(trait.subpop, rep(NA, subpop.max - length(trait.subpop)))
+          } else {
+            trait.subpops[, i] <- trait.subpop
+          }
+        }
+        
+        boxplot(trait.subpops, names = subpop.level)
+        
+      }
+      
+      
+    }
+  }
+  if (return.all) {
+    if (!is.null(pos)) {
+      return(
+        list(
+          trait = trait,
+          u = g.all2,
+          e = e2,
+          candidate = qtn.candidates,
+          qtn.position = pos.qtns,
+          heritability = true_h
+        )
+      )
+    } else {
+      return(
+        list(
+          trait = trait,
+          u = g.all2,
+          e = e2,
+          candidate = qtn.candidates,
+          heritability = true_h
+        )
+      )
+    }
+  } else {
+    return(trait)
+  }
+}

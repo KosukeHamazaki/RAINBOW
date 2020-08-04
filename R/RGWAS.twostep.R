@@ -45,7 +45,7 @@
 #' \describe{
 #' \item{"gaussian"}{It is the default method. Gaussian kernel is calculated by distance matrix.}
 #' \item{"exponential"}{When this method is selected, exponential kernel is calculated by distance matrix.}
-#' \item{"linear"}{When this method is selected, linear kernel is calculated by A.mat.}
+#' \item{"linear"}{When this method is selected, linear kernel is calculated by NOIA methods for additive GRM.}
 #'}
 #' So local genomic relation matrix is regarded as kernel.
 #' @param kernel.h The hyper parameter for gaussian or exponential kernel.
@@ -444,10 +444,10 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
 
         threshold <- try(CalcThreshold(GWAS.res.first.now, sig.level = sig.level, method = method.thres), silent = TRUE)
         threshold.correction <- try(CalcThreshold(res.correction, sig.level = sig.level, method = method.thres), silent = TRUE)
-        if(class(threshold) == "try-error"){
+        if("try-error" %in% class(threshold)){
           threshold <- NA
         }
-        if(class(threshold.correction) == "try-error"){
+        if("try-error" %in% class(threshold.correction)){
           threshold.correction <- NA
         }
         thresholds[test.effect.no, pheno.no] <- threshold
@@ -569,10 +569,10 @@ RGWAS.twostep <- function(pheno, geno, ZETA = NULL, covariate = NULL, covariate.
 
       threshold <- try(CalcThreshold(GWAS.res.first[, c(1:3, pheno.no + 3)], sig.level = sig.level, method = method.thres), silent = TRUE)
       threshold.correction <- try(CalcThreshold(res.correction, sig.level = sig.level, method= method.thres), silent = TRUE)
-      if(class(threshold) == "try-error"){
+      if("try-error" %in% class(threshold)){
         threshold <- NA
       }
-      if(class(threshold.correction) == "try-error"){
+      if("try-error" %in% class(threshold.correction)){
         threshold.correction <- NA
       }
       thresholds[, pheno.no] <- threshold
