@@ -2172,36 +2172,36 @@ estNetwork <- function(blockInterest = NULL, gwasRes = NULL, nTopRes = 1, gene.s
         
         plt <- ggplot2::ggplot(data = mdsPointsForPlotDF,
                                ggplot2::aes(x = MDS1,
-                                            y = MDS2)) 
+                          y = MDS2)) 
         if (any(alphaAll == alpha2)) {
           plt <- plt +
             scatterpie::geom_scatterpie(data = mdsPointsForPlotDF[alphaAll == alpha1, ],
                                         ggplot2::aes(x = MDS1,
-                                                     y = MDS2,
-                                                     r = cex),
-                                        cols = colnames(colorForAllCompDF),
-                                        col = NA, alpha = alpha1) +
+                                y = MDS2,
+                                r = cex),
+                            cols = colnames(colorForAllCompDF),
+                            col = NA, alpha = alpha1) +
             scatterpie::geom_scatterpie(data = mdsPointsForPlotDF[alphaAll == alpha2, ],
                                         ggplot2::aes(x = MDS1,
-                                                     y = MDS2,
-                                                     r = cex),
-                                        cols = colnames(colorForAllCompDF),
-                                        col = NA, alpha = alpha2) +
+                                y = MDS2,
+                                r = cex),
+                            cols = colnames(colorForAllCompDF),
+                            col = NA, alpha = alpha2) +
             ggplot2::scale_fill_manual(values = c(colHaploBaseForPie,
-                                                  colCompBase)) +
+                                         colCompBase)[order(colnames(colorForAllCompDF))]) +
             ggplot2::coord_equal() +
             ggplot2::xlab(paste0("MDS", plotWhichMDS[1])) +
             ggplot2::ylab(paste0("MDS", plotWhichMDS[2]))
         } else {
           plt <- plt +
             scatterpie::geom_scatterpie(data = mdsPointsForPlotDF[alphaAll == alpha1, ],
-                                        ggplot2::aes(x = MDS1,
-                                                     y = MDS2,
-                                                     r = cex),
-                                        cols = colnames(colorForAllCompDF),
-                                        col = NA, alpha = alpha1) +
+                            ggplot2::aes(x = MDS1,
+                                y = MDS2,
+                                r = cex),
+                            cols = colnames(colorForAllCompDF),
+                            col = NA, alpha = alpha1) +
             ggplot2::scale_fill_manual(values = c(colHaploBaseForPie,
-                                                  colCompBase)) +
+                                         colCompBase)[order(colnames(colorForAllCompDF))]) +
             ggplot2::coord_equal() +
             ggplot2::xlab(paste0("MDS", plotWhichMDS[1])) +
             ggplot2::ylab(paste0("MDS", plotWhichMDS[2]))
@@ -2215,13 +2215,13 @@ estNetwork <- function(blockInterest = NULL, gwasRes = NULL, nTopRes = 1, gene.s
                                     y2 = mdsPoints[mstResComp[, 2], 2])
         
         plt <- plt + ggplot2::geom_segment(ggplot2::aes(x = x1,
-                                                        y = y1,
-                                                        xend = x2,
-                                                        yend = y2),
-                                           data = mdsSegmentsDF,
-                                           col = colConnection[1],
-                                           lty = ltyConnection[1],
-                                           lwd = lwdConnection[1])
+                                      y = y1,
+                                      xend = x2,
+                                      yend = y2),
+                                  data = mdsSegmentsDF,
+                                  col = colConnection[1],
+                                  lty = ltyConnection[1],
+                                  lwd = lwdConnection[1])
         if (plotPlus) {
           mdsSegmentsPlusDF <- data.frame(x1 = mdsPoints[mstResCompPlus[, 1], 1],
                                           y1 = mdsPoints[mstResCompPlus[, 1], 2],
@@ -2229,19 +2229,19 @@ estNetwork <- function(blockInterest = NULL, gwasRes = NULL, nTopRes = 1, gene.s
                                           y2 = mdsPoints[mstResCompPlus[, 2], 2])
           
           plt <- plt + ggplot2::geom_segment(ggplot2::aes(x = x1,
-                                                          y = y1,
-                                                          xend = x2,
-                                                          yend = y2),
-                                             data = mdsSegmentsPlusDF,
-                                             col = colConnection[2],
-                                             lty = ltyConnection[2],
-                                             lwd = lwdConnection[2])
+                                        y = y1,
+                                        xend = x2,
+                                        yend = y2),
+                                    data = mdsSegmentsPlusDF,
+                                    col = colConnection[2],
+                                    lty = ltyConnection[2],
+                                    lwd = lwdConnection[2])
         }
         
         
         plt <- plt + ggplot2::ggtitle(label = paste0(paste(c(colnames(pheno)[2], 
-                                                             blockName, kernelType), collapse = "_"),
-                                                     " (-log10p: ", round(minuslog10p, 2), ")"))
+                                                    blockName, kernelType), collapse = "_"),
+                                            " (-log10p: ", round(minuslog10p, 2), ")"))
         
         
         if (!is.null(saveName)) {
@@ -2577,12 +2577,12 @@ plotPhyloTree <- function(estPhyloRes, traitName = NULL, blockName = NULL, plotT
       
       if (plotNode) {
         piesNode <- ggtree::nodepie(colorForNodeDF, cols = 1:2,
-                                    color = colNodeBase,
-                                    alpha　=　alphaNode)
+                            color = colNodeBase,
+                            alpha　=　alphaNode)
         
         plt <- plt + ggtree::geom_inset(insets = piesNode,
-                                        width = cexNodeForGG,
-                                        height = cexNodeForGG)
+                                width = cexNodeForGG,
+                                height = cexNodeForGG)
       }
       
       if (tipLabel) {
@@ -2594,35 +2594,35 @@ plotPhyloTree <- function(estPhyloRes, traitName = NULL, blockName = NULL, plotT
         
         if (!all(is.na(EMMRes))) {
           piesPlus <- ggtree::nodepie(clusterNosRatioDF[alphaTip == alphaBase[1], ],
-                                      cols = 1:nGrp,
-                                      color = colTipBaseForPie,
-                                      alpha　=　alphaBase[1])
+                              cols = 1:nGrp,
+                              color = colTipBaseForPie,
+                              alpha　=　alphaBase[1])
           piesMinus <- ggtree::nodepie(clusterNosRatioDF[alphaTip == alphaBase[2], ],
-                                       cols = 1:nGrp,
-                                       color = colTipBaseForPie,
-                                       alpha　=　alphaBase[2])
+                               cols = 1:nGrp,
+                               color = colTipBaseForPie,
+                               alpha　=　alphaBase[2])
           
           plt <- plt + ggtree::geom_inset(insets = piesPlus,
-                                          width = cexTipForGG[alphaTip == alphaBase[1]],
-                                          height = cexTipForGG[alphaTip == alphaBase[1]])
+                                  width = cexTipForGG[alphaTip == alphaBase[1]],
+                                  height = cexTipForGG[alphaTip == alphaBase[1]])
           
           plt <- plt + ggtree::geom_inset(insets = piesMinus,
-                                          width = cexTipForGG[alphaTip == alphaBase[2]],
-                                          height = cexTipForGG[alphaTip == alphaBase[2]])
+                                  width = cexTipForGG[alphaTip == alphaBase[2]],
+                                  height = cexTipForGG[alphaTip == alphaBase[2]])
         } else {
           piesTip <- ggtree::nodepie(clusterNosRatioDF,
-                                     cols = 1:nGrp,
-                                     color = colTipBaseForPie,
-                                     alpha　=　mean(alphaBase)) 
+                             cols = 1:nGrp,
+                             color = colTipBaseForPie,
+                             alpha　=　mean(alphaBase)) 
           
           plt <- plt + ggtree::geom_inset(insets = piesTip,
-                                          width = cexTipForGG,
-                                          height = cexTipForGG)
+                                  width = cexTipForGG,
+                                  height = cexTipForGG)
         }
       }
       plt <- plt + ggplot2::ggtitle(label = paste0(paste(c(traitName[2], 
-                                                           blockName, kernelType), collapse = "_"),
-                                                   " (-log10p: ", round(minuslog10p, 2), ")"))
+                                                  blockName, kernelType), collapse = "_"),
+                                          " (-log10p: ", round(minuslog10p, 2), ")"))
       
       
       if (!is.null(saveName)) {
@@ -3071,23 +3071,23 @@ plotHaploNetwork <- function(estNetworkRes, traitName = NULL, blockName = NULL,
       
       plt <- ggplot2::ggplot(data = mdsPointsForPlotDF,
                              ggplot2::aes(x = MDS1,
-                                          y = MDS2)) 
+                        y = MDS2)) 
       if (any(alphaAll == alpha2)) {
         plt <- plt +
           scatterpie::geom_scatterpie(data = mdsPointsForPlotDF[alphaAll == alpha1, ],
-                                      ggplot2::aes(x = MDS1,
-                                                   y = MDS2,
-                                                   r = cex),
-                                      cols = colnames(colorForAllCompDF),
-                                      col = NA, alpha = alpha1) +
+                          ggplot2::aes(x = MDS1,
+                              y = MDS2,
+                              r = cex),
+                          cols = colnames(colorForAllCompDF),
+                          col = NA, alpha = alpha1) +
           scatterpie::geom_scatterpie(data = mdsPointsForPlotDF[alphaAll == alpha2, ],
-                                      ggplot2::aes(x = MDS1,
-                                                   y = MDS2,
-                                                   r = cex),
-                                      cols = colnames(colorForAllCompDF),
-                                      col = NA, alpha = alpha2) +
+                          ggplot2::aes(x = MDS1,
+                              y = MDS2,
+                              r = cex),
+                          cols = colnames(colorForAllCompDF),
+                          col = NA, alpha = alpha2) +
           ggplot2::scale_fill_manual(values = c(colHaploBaseForPie,
-                                                colCompBase)) +
+                                       colCompBase)[order(colnames(colorForAllCompDF))]) +
           ggplot2::coord_equal() +
           ggplot2::xlab(paste0("MDS", plotWhichMDS[1])) +
           ggplot2::ylab(paste0("MDS", plotWhichMDS[2]))
@@ -3095,12 +3095,12 @@ plotHaploNetwork <- function(estNetworkRes, traitName = NULL, blockName = NULL,
         plt <- plt +
           scatterpie::geom_scatterpie(data = mdsPointsForPlotDF[alphaAll == alpha1, ],
                                       ggplot2::aes(x = MDS1,
-                                                   y = MDS2,
-                                                   r = cex),
-                                      cols = colnames(colorForAllCompDF),
-                                      col = NA, alpha = alpha1) +
+                              y = MDS2,
+                              r = cex),
+                          cols = colnames(colorForAllCompDF),
+                          col = NA, alpha = alpha1) +
           ggplot2::scale_fill_manual(values = c(colHaploBaseForPie,
-                                                colCompBase)) +
+                                       colCompBase)[order(colnames(colorForAllCompDF))]) +
           ggplot2::coord_equal() +
           ggplot2::xlab(paste0("MDS", plotWhichMDS[1])) +
           ggplot2::ylab(paste0("MDS", plotWhichMDS[2]))
@@ -3114,13 +3114,13 @@ plotHaploNetwork <- function(estNetworkRes, traitName = NULL, blockName = NULL,
                                   y2 = mdsPoints[mstResComp[, 2], 2])
       
       plt <- plt + ggplot2::geom_segment(ggplot2::aes(x = x1,
-                                                      y = y1,
-                                                      xend = x2,
-                                                      yend = y2),
-                                         data = mdsSegmentsDF,
-                                         col = colConnection[1],
-                                         lty = ltyConnection[1],
-                                         lwd = lwdConnection[1])
+                                    y = y1,
+                                    xend = x2,
+                                    yend = y2),
+                                data = mdsSegmentsDF,
+                                col = colConnection[1],
+                                lty = ltyConnection[1],
+                                lwd = lwdConnection[1])
       if (plotPlus) {
         mdsSegmentsPlusDF <- data.frame(x1 = mdsPoints[mstResCompPlus[, 1], 1],
                                         y1 = mdsPoints[mstResCompPlus[, 1], 2],
@@ -3128,19 +3128,19 @@ plotHaploNetwork <- function(estNetworkRes, traitName = NULL, blockName = NULL,
                                         y2 = mdsPoints[mstResCompPlus[, 2], 2])
         
         plt <- plt + ggplot2::geom_segment(ggplot2::aes(x = x1,
-                                                        y = y1,
-                                                        xend = x2,
-                                                        yend = y2),
-                                           data = mdsSegmentsPlusDF,
-                                           col = colConnection[2],
-                                           lty = ltyConnection[2],
-                                           lwd = lwdConnection[2])
+                                      y = y1,
+                                      xend = x2,
+                                      yend = y2),
+                                  data = mdsSegmentsPlusDF,
+                                  col = colConnection[2],
+                                  lty = ltyConnection[2],
+                                  lwd = lwdConnection[2])
       }
       
       
       plt <- plt + ggplot2::ggtitle(label = paste0(paste(c(traitName, 
-                                                           blockName, kernelType), collapse = "_"),
-                                                   " (-log10p: ", round(minuslog10p, 2), ")"))
+                                                  blockName, kernelType), collapse = "_"),
+                                          " (-log10p: ", round(minuslog10p, 2), ")"))
       
       
       if (!is.null(saveName)) {
